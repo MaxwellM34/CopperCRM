@@ -1,0 +1,17 @@
+[project]
+name = "crm"
+version = "0.1.0"
+description = "FastAPI, GCP, PostgreSQL, Tortoise"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "aerich>=0.8.0",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.124.4",
+    "fastapi-users>=15.0.1",
+    "fastapi-users-db-tortoise>=2.0.0",
+    "google-auth>=2.43.0",
+    "python-dotenv>=1.2.1",
+    "tortoise-orm>=0.18.1",
+    "uvicorn[standard]>=0.38.0",
+]

@@ -1,0 +1,17 @@
+#env
+.env
+
+#git (I have it visible in my repo)
+.git
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
