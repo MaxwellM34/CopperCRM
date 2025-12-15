@@ -10,6 +10,7 @@ dependencies = [
     "fastapi>=0.124.4",
     "fastapi-users>=15.0.1",
     "fastapi-users-db-tortoise>=2.0.0",
+    "gcloud>=0.18.3",
     "google-auth>=2.43.0",
     "python-dotenv>=1.2.1",
     "tortoise-orm>=0.18.1",
