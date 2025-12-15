@@ -1,5 +1,6 @@
 import os
-
+from dotenv import load_dotenv
+load_dotenv()
 
 def _get_env() -> str:
     return os.getenv("ENV", "local").strip().lower()

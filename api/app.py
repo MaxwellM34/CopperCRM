@@ -29,7 +29,7 @@ def create_app() -> FastAPI:
     async def lifespan(app: FastAPI):
         # --- startup ---
         await Tortoise.init(config=Config.TORTOISE_ORM)
-        await Tortoise.generate_schemas(safe=True)  # remove if you only want migrations
+
         write_openai_schema(app) # later if I want to be doing the thingy thangs with the ai
         print("✅ Generated openai_tools.json")
        

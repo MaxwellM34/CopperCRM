@@ -23,7 +23,7 @@ class _HttpClientRequest:
         from google.auth.transport._http_client import Response
 
         if timeout is None:
-            timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+            timeout = socket._GLOBAL_DEFAULT_TIMEOUT #type: ignore
         if headers is None:
             headers = {}
 

@@ -13,7 +13,7 @@ class UserCreate(BaseModel):
 
 
 @router.post("", response_model=dict)
-async def create_user(payload: UserCreate, user: User = Depends(authenticate)):
+async def create_user(payload: UserCreate):
     existing = await User.get_or_none(email=payload.email)
     if existing:
         raise HTTPException(status_code=400, detail="User already exists")
