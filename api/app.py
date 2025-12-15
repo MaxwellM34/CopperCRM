@@ -9,6 +9,7 @@ from openai import write_openai_schema
 from config import Config
 from routers.imports import router as leads_router
 from routers.users import router as users_router
+from routers.auth import router as auth_router
 
 # routers (adjust names to your project)
 # from routers.posts import router as posts_router
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=[
             "http://localhost:8000",
+            "http://127.0.0.1:8000",
             "https://crm-api-468831678336.us-central1.run.app"
             # Add your Cloud Run URL later (once created)
         ],
@@ -56,6 +58,7 @@ def create_app() -> FastAPI:
     # Routers (uncomment when you have them)
     app.include_router(leads_router)
     app.include_router(users_router)
+    app.include_router(auth_router)
     # app.include_router(posts_router)
 
     init_db(app)
