@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException
-from api.auth.google import bearer, verify_google_token_db
+from .google import bearer, verify_google_token_db
 
 
 

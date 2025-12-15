@@ -22,3 +22,14 @@ class LocalConfig(BaseConfig):
             }
         },
     }
+
+
+'''
+docker run -d \
+  --name crm-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=crm_local \
+  -p 5432:5432 \
+  postgres:16
+'''

@@ -17,14 +17,14 @@ class Lead(models.Model):
         # audit fields (self-referencing)
     created_by = fields.ForeignKeyField(
         "models.User",
-        related_name="created_users",
+        related_name="created_leads",
         null=True,
         on_delete=fields.SET_NULL,
     )
 
     updated_by = fields.ForeignKeyField(
         "models.User",
-        related_name="updated_users",
+        related_name="updated_leads",
         null=True,
         on_delete=fields.SET_NULL,
     )
@@ -54,14 +54,14 @@ class Company(models.Model):
         # audit fields (self-referencing)
     created_by = fields.ForeignKeyField(
         "models.User",
-        related_name="created_users",
+        related_name="created_companies",
         null=True,
         on_delete=fields.SET_NULL,
     )
 
     updated_by = fields.ForeignKeyField(
         "models.User",
-        related_name="updated_users",
+        related_name="updated_companies",
         null=True,
         on_delete=fields.SET_NULL,
     )
@@ -83,5 +83,4 @@ class Company(models.Model):
 
     class Meta: #type: ignore
         table = "compaies"
-
 
