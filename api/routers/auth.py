@@ -30,9 +30,10 @@ async def login_page() -> HTMLResponse:
   </head>
   <body>
     <h1>Login</h1>
-    <p class="muted">Sign in with Google to get an <code>Authorization: Bearer &lt;id_token&gt;</code> for API calls.</p>
+    <p class="muted">Sign in with Google to get an ID token for API calls.</p>
+    <p class="muted">Swagger: open <code>/docs</code>, click Authorize, and paste the raw token only (no <code>Bearer</code> prefix).</p>
     <p class="muted">Origin: <code id="origin"></code> &nbsp;|&nbsp; Client ID: <code id="clientId"></code></p>
-    <p class="muted">If Google shows <code>origin_mismatch</code>, add the origin above to the OAuth Client’s “Authorized JavaScript origins”.</p>
+    <p class="muted">If Google shows <code>origin_mismatch</code>, add the origin above to the OAuth Client's <code>Authorized JavaScript origins</code>.</p>
 
     <div class="row">
       <div id="g_id_signin"></div>
@@ -108,3 +109,4 @@ async def login_page() -> HTMLResponse:
 </html>
 """
     return HTMLResponse(content=html)
+

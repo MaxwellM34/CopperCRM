@@ -10,6 +10,14 @@ class CloudConfig(BaseConfig):
 
     GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE")
     SERVER_URL = os.getenv("SERVER_URL")
+    DEBUG_AUTH = os.getenv("DEBUG_AUTH", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
+    AUTO_PROVISION_USERS = os.getenv("AUTO_PROVISION_USERS", "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "y",
+        "on",
+    }
 
     _missing = [
         name

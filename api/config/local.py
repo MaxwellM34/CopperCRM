@@ -1,5 +1,8 @@
 import os
+from dotenv import load_dotenv
 from .base import BaseConfig
+
+load_dotenv()
 
 class LocalConfig(BaseConfig):
     PG_HOST = os.getenv("PG_HOST", "localhost")
@@ -10,6 +13,14 @@ class LocalConfig(BaseConfig):
 
     GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE") #type: ignore
     SERVER_URL = os.getenv("SERVER_URL", "http://127.0.0.1:8000")
+    DEBUG_AUTH = os.getenv("DEBUG_AUTH", "true").strip().lower() in {"1", "true", "yes", "y", "on"}
+    AUTO_PROVISION_USERS = os.getenv("AUTO_PROVISION_USERS", "true").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "y",
+        "on",
+    }
 
     TORTOISE_ORM = {
         "connections": {
