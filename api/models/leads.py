@@ -3,8 +3,8 @@ from tortoise import fields, models
 
 class Lead(models.Model):
     id = fields.IntField(pk=True)
-    email = fields.CharField(max_length=100, unique=True)
-    work_email = fields.CharField(max_length=100, unique=True)
+    email = fields.CharField(max_length=100, unique=True, null=True)
+    work_email = fields.CharField(max_length=100, unique=True, null=True)
     first_name = fields.CharField(max_length=100)
     last_name = fields.CharField(max_length=255)
     job_title = fields.CharField(max_length=255, null=True)
@@ -83,4 +83,3 @@ class Company(models.Model):
 
     class Meta: #type: ignore
         table = "compaies"
-

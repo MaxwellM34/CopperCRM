@@ -19,7 +19,7 @@ def init_db(app: FastAPI) -> None:
     register_tortoise(
         app,
         config=Config.TORTOISE_ORM,
-        generate_schemas=True,          # OK for now; later replace with Aerich migrations
+        generate_schemas=False,          # OK for now; later replace with Aerich migrations
         add_exception_handlers=True,
     )
 

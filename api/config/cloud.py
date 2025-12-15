@@ -11,29 +11,6 @@ class CloudConfig(BaseConfig):
     GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE")
     SERVER_URL = os.getenv("SERVER_URL")
     DEBUG_AUTH = os.getenv("DEBUG_AUTH", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
-    AUTO_PROVISION_USERS = os.getenv("AUTO_PROVISION_USERS", "false").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "y",
-        "on",
-    }
-
-    _missing = [
-        name
-        for name, value in {
-            "PG_GCP_PATH": PG_GCP_PATH,
-            "PG_USER": PG_USER,
-            "PG_PASS": PG_PASS,
-        }.items()
-        if not value
-    ]
-    if _missing:
-        raise RuntimeError(
-            "ENV=cloud requires the following environment variables: "
-            + ", ".join(_missing)
-            + " (or set ENV=local)."
-        )
 
     TORTOISE_ORM = {
         "connections": {
