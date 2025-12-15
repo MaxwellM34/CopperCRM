@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from tortoise.contrib.fastapi import register_tortoise
+from tortoise import Tortoise
+from openai import write_openai_schema 
+
 
 from config import Config
 
@@ -23,17 +26,18 @@ def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         # --- startup ---
-        # If you have an openapi schema writer like Adam, call it here
-        # from utils.openai_schema import write_openai_schema
-        # write_openai_schema(app)
-        # print("✅ Generated openai_tools.json")
+        #await Tortoise.init(config=Config.TORTOISE_ORM)
+        #await Tortoise.generate_schemas(safe=True)  # remove if you only want migrations
+        write_openai_schema(app) # later if I want to be doing the thingy thangs with the ai
+        print("✅ Generated openai_tools.json")
+       
 
         yield
 
         # --- shutdown ---
         pass
 
-    app = FastAPI(title="CRM API", lifespan=lifespan)
+    app = FastAPI(title="Copper CRM API", lifespan=lifespan)
 
     # CORS (keep permissive for now; tighten later)
     app.add_middleware(
