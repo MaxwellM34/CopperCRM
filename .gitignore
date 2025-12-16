@@ -18,3 +18,14 @@ wheels/
 # .json
 openai_tools.json
 
+# Node/Next artifacts
+webapp/node_modules/
+webapp/.next/
+webapp/.turbo/
+webapp/.vercel/
+webapp/.pnpm-store/
+webapp/.cache/
+webapp/dist/
+webapp/build/
+npm-debug.log*
+yarn-error.log*

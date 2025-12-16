@@ -4,7 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Copper CRM",
   description: "Login and import CSVs",
-  icons: [{ rel: "icon", url: "/copper.png" }],
+  icons: [
+    { rel: "icon", url: "/copper.png", sizes: "64x64" },
+    { rel: "apple-touch-icon", url: "/copper.png" },
+  ],
 };
 
 export default function RootLayout({

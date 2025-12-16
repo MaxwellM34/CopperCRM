@@ -54,47 +54,53 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-6 py-12">
-      <div className="grid gap-8 rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-2xl md:grid-cols-2">
-        <div className="flex flex-col justify-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-copper-500/20 ring-1 ring-copper-500/40">
+    <main className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(226,95,26,0.15),transparent_30%),radial-gradient(circle_at_80%_0%,rgba(111,152,255,0.08),transparent_30%)]" />
+      <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6 py-16">
+        <div className="grid w-full gap-10 rounded-3xl border border-white/10 bg-slate-900/75 p-10 shadow-2xl lg:grid-cols-2">
+          <div className="flex flex-col justify-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-copper-500/20 ring-1 ring-copper-500/40">
+                <Image
+                  src="/copper.png"
+                  alt="Copper"
+                  width={56}
+                  height={56}
+                  className="hero-img"
+                />
+              </div>
+              <div>
+                <div className="text-2xl font-semibold">Copper CRM</div>
+                <p className="text-sm text-slate-400">Just sign in with Google.</p>
+              </div>
+            </div>
+            <h1 className="text-4xl font-semibold leading-tight">Welcome back</h1>
+            <p className="text-sm text-slate-400">
+              Tap the Google button below. We’ll take you straight to CSV imports—no extra setup shown.
+            </p>
+            <div id="gsi-btn" className="mt-4" />
+            <p className="text-xs text-slate-400">{status}</p>
+            {!ready && (
+              <div className="h-1 w-24 rounded bg-white/10">
+                <div className="h-1 w-12 animate-pulse rounded bg-copper-500" />
+              </div>
+            )}
+          </div>
+          <div className="relative flex items-center justify-center">
+            <div className="absolute h-80 w-80 rounded-full bg-copper-500/15 blur-3xl" />
+            <div className="relative flex flex-col items-center gap-4 rounded-3xl bg-white/5 p-6 shadow-xl ring-1 ring-white/10">
               <Image
                 src="/copper.png"
-                alt="Copper"
-                width={40}
-                height={40}
+                alt="Copper mascot"
+                width={360}
+                height={360}
                 className="hero-img"
               />
-            </div>
-            <div>
-              <div className="text-xl font-semibold">Copper CRM</div>
-              <p className="text-sm text-slate-400">Welcome back.</p>
+              <p className="text-center text-sm text-slate-300">
+                A single tap gets you in. Then we’ll whisk you to uploads.
+              </p>
             </div>
           </div>
-          <h1 className="text-3xl font-semibold leading-tight">Sign in with Google</h1>
-          <p className="text-sm text-slate-400">
-            We only need your Google login to proceed to imports. No URLs or tokens shown.
-          </p>
-          <div id="gsi-btn" className="mt-4" />
-          <p className="text-xs text-slate-400">{status}</p>
-          {!ready && (
-            <div className="h-1 w-24 rounded bg-white/10">
-              <div className="h-1 w-12 animate-pulse rounded bg-copper-500" />
-            </div>
-          )}
-        </div>
-        <div className="flex flex-col items-center justify-center gap-4">
-          <Image
-            src="/copper.png"
-            alt="Copper mascot"
-            width={280}
-            height={280}
-            className="hero-img"
-          />
-          <p className="text-center text-sm text-slate-400">
-            After signing in, you&apos;ll jump straight to CSV imports.
-          </p>
         </div>
       </div>
     </main>

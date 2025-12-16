@@ -67,8 +67,8 @@ export default function ImportPage() {
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-6 py-10">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-copper-500/20 ring-1 ring-copper-500/40">
-            <Image src="/copper.png" alt="Copper" width={40} height={40} />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-copper-500/20 ring-1 ring-copper-500/40">
+            <Image src="/copper.png" alt="Copper" width={56} height={56} />
           </div>
           <div>
             <div className="text-lg font-semibold leading-tight">CSV Import</div>
