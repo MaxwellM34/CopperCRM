@@ -51,13 +51,13 @@
         ]
       }
     },
-    "/users": {
+    "/users/": {
       "post": {
         "tags": [
           "users"
         ],
         "summary": "Create User",
-        "operationId": "create_user_users_post",
+        "operationId": "create_user_users__post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -76,7 +76,7 @@
                 "schema": {
                   "additionalProperties": true,
                   "type": "object",
-                  "title": "Response Create User Users Post"
+                  "title": "Response Create User Users  Post"
                 }
               }
             }
@@ -92,13 +92,15 @@
             }
           }
         }
-      },
+      }
+    },
+    "/users/delete user": {
       "delete": {
         "tags": [
           "users"
         ],
         "summary": "Delete User",
-        "operationId": "delete_user_users_delete",
+        "operationId": "delete_user_users_delete_user_delete",
         "requestBody": {
           "content": {
             "application/json": {
@@ -117,8 +119,47 @@
                 "schema": {
                   "additionalProperties": true,
                   "type": "object",
-                  "title": "Response Delete User Users Delete"
+                  "title": "Response Delete User Users Delete User Delete"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/adminize": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Adminize User",
+        "operationId": "adminize_user_users_adminize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserAdminize"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -225,6 +266,19 @@
         },
         "type": "object",
         "title": "LeadCompanyImportResult"
+      },
+      "UserAdminize": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "UserAdminize"
       },
       "UserCreate": {
         "properties": {
