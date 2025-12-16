@@ -1,0 +1,10 @@
+node_modules
+.next
+.turbo
+.vercel
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+package-lock.json
+.env.local
+.env

@@ -6,8 +6,8 @@ steps:
         "-t",
         "us-central1-docker.pkg.dev/crm-mvp-481223/default/crm-frontend:latest",
         "-f",
-        "Dockerfile.webapp",
-        ".",
+        "webapp/Dockerfile.webapp",
+        "webapp",
       ]
 images:
   - "us-central1-docker.pkg.dev/crm-mvp-481223/default/crm-frontend:latest"

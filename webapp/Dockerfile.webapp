@@ -1,20 +1,16 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 
-# Install deps
-COPY webapp/package*.json ./
+COPY package*.json ./
 RUN npm install
 
-# Build
-COPY webapp ./
+COPY . .
 RUN npm run build
 
-# Runtime image
 FROM node:18-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy built app
 COPY --from=build /app ./
 
 EXPOSE 8080
