@@ -37,14 +37,28 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
     window.location.href = "/";
   };
 
-  // Redirect to login if no token
+  // Validate token against API; redirect to login if missing/invalid
   useEffect(() => {
-    const token = storage.getToken();
-    if (!token) {
-      window.location.href = "/";
-      return;
-    }
-    setAuthorized(true);
+    (async () => {
+      const token = storage.getToken();
+      if (!token) {
+        window.location.href = "/";
+        return;
+      }
+
+      const apiBase = storage.getApiBaseUrl().replace(/\/$/, "");
+      try {
+        const res = await fetch(`${apiBase}/auth/me`, {
+          headers: { Authorization: "Bearer " + token },
+        });
+        if (!res.ok) throw new Error("unauthorized");
+        await res.json();
+        setAuthorized(true);
+      } catch {
+        storage.clearToken();
+        window.location.href = "/";
+      }
+    })();
   }, []);
 
   if (!authorized) {

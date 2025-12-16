@@ -8,8 +8,8 @@ from openai import write_openai_schema
 
 from config import Config
 from routers.imports import router as leads_router
-from routers.users import router as users_router
 from routers.auth import router as auth_router
+from routers.users import router as users_router
 
 # routers (adjust names to your project)
 # from routers.posts import router as posts_router
@@ -59,9 +59,9 @@ def create_app() -> FastAPI:
     )
 
     # Routers (uncomment when you have them)
+    app.include_router(auth_router)
     app.include_router(leads_router)
     app.include_router(users_router)
-    app.include_router(auth_router)
     # app.include_router(posts_router)
 
     init_db(app)
