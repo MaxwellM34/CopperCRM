@@ -61,6 +61,7 @@ a {
   align-items: center;
   justify-content: center;
   padding: 32px;
+  overflow: hidden;
 }
 
 .login-backdrop {
@@ -75,7 +76,7 @@ a {
 
 .login-card {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(460px, 96vw);
   padding: 32px 32px 24px;
   border-radius: 28px;
@@ -128,6 +129,107 @@ a {
   font-size: 13px;
   color: var(--muted);
   margin-top: 6px;
+}
+
+.money-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1;
+  perspective: 1400px;
+}
+
+.bill {
+  position: absolute;
+  top: -30vh;
+  left: var(--left);
+  width: var(--bill-size);
+  height: calc(var(--bill-size) * 0.55);
+  background: linear-gradient(145deg, #0c4535 0%, #0d5942 45%, #0a3a2d 100%);
+  border: 1.6px solid rgba(21, 93, 63, 0.9);
+  border-radius: 10px;
+  box-shadow:
+    0 14px 35px rgba(0, 0, 0, 0.35),
+    0 0 18px rgba(21, 93, 63, 0.25);
+  opacity: var(--bill-opacity);
+  transform: translate3d(0, -20vh, 0) rotateZ(var(--bill-tilt)) rotateX(26deg);
+  animation: fall var(--bill-duration) cubic-bezier(0.18, 0.62, 0.33, 0.99) infinite;
+  animation-delay: var(--bill-delay);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+}
+
+.bill-glow,
+.bill::before,
+.bill::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bill-glow {
+  background: radial-gradient(ellipse at 30% 30%, rgba(36, 241, 138, 0.24), transparent 55%);
+  filter: blur(8px);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.bill::before {
+  content: "";
+  position: absolute;
+  inset: 12% 10%;
+  border: 1px solid rgba(197, 224, 191, 0.35);
+  border-radius: 8px;
+}
+
+.bill::after {
+  content: "";
+  position: absolute;
+  top: 12%;
+  left: 55%;
+  width: 18%;
+  height: 76%;
+  border-left: 5px solid rgba(36, 241, 138, 0.25);
+  border-right: 3px solid rgba(36, 241, 138, 0.18);
+  border-radius: 2px;
+  opacity: 0.55;
+  filter: blur(0.3px);
+}
+
+.bill-mark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--bill-size) * 0.22);
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #d7f2d1;
+  text-shadow:
+    0 0 10px rgba(36, 241, 138, 0.35),
+    0 0 20px rgba(36, 241, 138, 0.25);
+  mix-blend-mode: screen;
+}
+
+@keyframes fall {
+  0% {
+    transform: translate3d(calc(-1 * var(--bill-sway)), -130vh, 0) rotateZ(var(--bill-tilt)) rotateX(40deg)
+      rotateY(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--bill-opacity);
+  }
+  50% {
+    transform: translate3d(calc(var(--bill-sway) * 0.5), 30vh, 0) rotateZ(calc(var(--bill-tilt) + var(--bill-spin) * 0.45))
+      rotateX(-8deg) rotateY(12deg);
+  }
+  100% {
+    transform: translate3d(calc(-1 * var(--bill-sway)), 130vh, 0) rotateZ(calc(var(--bill-tilt) + var(--bill-spin)))
+      rotateX(14deg) rotateY(-6deg);
+    opacity: 0;
+  }
 }
 
 /* App shell */

@@ -14,10 +14,39 @@ export default function Home() {
   const [buttonReady, setButtonReady] = useState(false);
   const buttonHostRef = useRef<HTMLDivElement>(null);
   const renderedRef = useRef(false);
+  const [bills, setBills] = useState<
+    {
+      id: number;
+      left: number;
+      duration: number;
+      delay: number;
+      size: number;
+      opacity: number;
+      tilt: number;
+      sway: number;
+      spin: number;
+    }[]
+  >([]);
 
   useEffect(() => {
     // Pick sensible default: local API in dev, Cloud Run in prod (overridable via env/localStorage)
     storage.setApiBaseUrl(storage.getApiBaseUrl());
+  }, []);
+
+  useEffect(() => {
+    // Generate a handful of floating bills with varied timing/size
+    const items = Array.from({ length: 28 }).map((_, i) => ({
+      id: i,
+      left: Math.random() * 100, // percent across screen
+      duration: 10 + Math.random() * 8, // seconds
+      delay: Math.random() * 8,
+      size: 140 + Math.random() * 140,
+      opacity: 0.35 + Math.random() * 0.35,
+      tilt: -15 + Math.random() * 30,
+      sway: 18 + Math.random() * 36,
+      spin: 160 + Math.random() * 320,
+    }));
+    setBills(items);
   }, []);
 
   useEffect(() => {
@@ -63,6 +92,29 @@ export default function Home() {
 
   return (
     <main className="login-screen">
+      <div className="money-field">
+        {bills.map((bill) => (
+          <div
+            key={bill.id}
+            className="bill"
+            style={
+              {
+                "--left": `${bill.left}%`,
+                "--bill-size": `${bill.size}px`,
+                "--bill-opacity": bill.opacity,
+                "--bill-tilt": `${bill.tilt}deg`,
+                "--bill-duration": `${bill.duration}s`,
+                "--bill-delay": `${bill.delay}s`,
+                "--bill-sway": `${bill.sway}px`,
+                "--bill-spin": `${bill.spin}deg`,
+              } as React.CSSProperties
+            }
+          >
+            <div className="bill-glow" />
+            <span className="bill-mark">$100</span>
+          </div>
+        ))}
+      </div>
       <div className="login-backdrop" />
       <div className="login-card glass">
         <Image src="/copper.png" alt="Copper" width={240} height={240} className="login-logo" />
