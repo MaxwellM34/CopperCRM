@@ -50,6 +50,7 @@ def create_app() -> FastAPI:
             "http://127.0.0.1:3000",
             "http://localhost:3000",
             "https://crm-api-468831678336.us-central1.run.app"
+            "https://crm-frontend-468831678336.us-central1.run.app"
             # Add your Cloud Run URL later (once created)
         ],
         allow_credentials=True,

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { storage } from "../lib/storage";
 
 type AppShellProps = {
@@ -29,12 +29,27 @@ const navItems: NavItem[] = [
 
 export function AppShell({ title, subtitle, children }: AppShellProps) {
   const [expanded, setExpanded] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
   const pathname = usePathname();
 
   const handleSignOut = () => {
     storage.clearToken();
     window.location.href = "/";
   };
+
+  // Redirect to login if no token
+  useEffect(() => {
+    const token = storage.getToken();
+    if (!token) {
+      window.location.href = "/";
+      return;
+    }
+    setAuthorized(true);
+  }, []);
+
+  if (!authorized) {
+    return null;
+  }
 
   return (
     <div className={`app-shell ${expanded ? "is-expanded" : ""}`}>

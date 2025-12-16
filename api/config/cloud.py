@@ -6,7 +6,7 @@ class CloudConfig(BaseConfig):
     PG_PORT = int(os.getenv("PG_PORT", "5432"))
     PG_USER = os.getenv("PG_USER")
     PG_PASS = os.getenv("PG_PASS")
-    PG_DB   = os.getenv("PG_DB", "crm")
+    PG_DB   = os.getenv("PG_DB")
 
     GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE")
     SERVER_URL = os.getenv("SERVER_URL")
