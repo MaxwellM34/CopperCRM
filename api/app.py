@@ -48,6 +48,7 @@ def create_app() -> FastAPI:
             "http://localhost:8000",
             "http://127.0.0.1:8000",
             "http://127.0.0.1:3000",
+            "http://localhost:3000",
             "https://crm-api-468831678336.us-central1.run.app"
             # Add your Cloud Run URL later (once created)
         ],
