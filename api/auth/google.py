@@ -70,23 +70,8 @@ async def verify_google_token_db(token: str):
         # Lookup or auto-provision user
         user = await User.get_or_none(email=email)
         if not user:
-            if getattr(Config, "AUTO_PROVISION_USERS", False):
-                firstname = (
-                    decoded.get("given_name")
-                    or decoded.get("name")
-                    or str(email).split("@", 1)[0]
-                    or "User"
-                )
-                lastname = decoded.get("family_name")
-
-                user = await User.create(
-                    email=email,
-                    firstname=firstname,
-                    lastname=lastname,
-                )
-            else:
-                # reject unknown users
-                return None
+            # Reject unknown users; only pre-created accounts may sign in
+            return None
 
         return user
 
@@ -94,4 +79,3 @@ async def verify_google_token_db(token: str):
         if getattr(Config, "DEBUG_AUTH", False):
             print(f"[auth] verify_google_token_db failed: {type(e).__name__}: {e}")
         return None
-

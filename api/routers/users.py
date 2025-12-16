@@ -11,6 +11,9 @@ class UserCreate(BaseModel):
     firstname: str
     lastname: str | None = None
 
+class UserDelete(BaseModel):
+    email: str
+
 
 @router.post("", response_model=dict)
 async def create_user(payload: UserCreate):
@@ -23,5 +26,15 @@ async def create_user(payload: UserCreate):
         firstname=payload.firstname,
         lastname=payload.lastname,
     )
+
+    return {"id": user.id, "email": user.email}
+
+@router.delete("", response_model=dict)
+async def delete_user(payload: UserDelete):
+    user = await User.get_or_none(email=payload.email)
+    if not user:
+        raise HTTPException(status_code=400, detail="User does not exists")
+
+    await user.delete()
 
     return {"id": user.id, "email": user.email}
