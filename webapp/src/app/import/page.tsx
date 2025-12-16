@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { storage } from "../../lib/storage";
+import AppShell from "../../components/AppShell";
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE ||
@@ -64,31 +65,10 @@ export default function ImportPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-6 py-10">
-      <header className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-copper-500/20 ring-1 ring-copper-500/40">
-            <Image src="/copper.png" alt="Copper" width={56} height={56} />
-          </div>
-          <div>
-            <div className="text-lg font-semibold leading-tight">CSV Import</div>
-            <p className="text-sm text-slate-400">Uploads to /leads/import</p>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            storage.clearToken();
-            window.location.href = "/";
-          }}
-          className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200 hover:border-copper-400 hover:text-white"
-        >
-          Sign out
-        </button>
-      </header>
-
+    <AppShell title="CSV Import" subtitle="Upload spreadsheets to create leads and companies.">
       <section className="glass rounded-2xl p-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-3">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-3">
             <label className="space-y-2 block">
               <div className="text-sm font-medium text-slate-200">CSV file</div>
               <input
@@ -144,6 +124,6 @@ export default function ImportPage() {
           className="mt-3 max-h-96 overflow-auto rounded-lg bg-slate-950 p-4 text-sm text-copper-100"
         ></pre>
       </section>
-    </main>
+    </AppShell>
   );
 }

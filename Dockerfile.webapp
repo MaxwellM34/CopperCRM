@@ -1,0 +1,21 @@
+FROM node:18-alpine AS build
+WORKDIR /app
+
+# Install deps
+COPY webapp/package*.json ./
+RUN npm install
+
+# Build
+COPY webapp ./
+RUN npm run build
+
+# Runtime image
+FROM node:18-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Copy built app
+COPY --from=build /app ./
+
+EXPOSE 8080
+CMD ["npm", "run", "start", "--", "-H", "0.0.0.0", "-p", "8080"]
