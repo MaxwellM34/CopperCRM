@@ -3,13 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from tortoise.contrib.fastapi import register_tortoise
 from tortoise import Tortoise
-from openai import write_openai_schema 
+from openai_schema import write_openai_schema 
 
 
 from config import Config
 from routers.imports import router as leads_router
 from routers.auth import router as auth_router
 from routers.users import router as users_router
+from routers.first_emails import router as first_emails_router
 
 # routers (adjust names to your project)
 # from routers.posts import router as posts_router
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(leads_router)
     app.include_router(users_router)
+    app.include_router(first_emails_router)
     # app.include_router(posts_router)
 
     init_db(app)

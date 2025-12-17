@@ -20,11 +20,12 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { label: "Home", href: "/crm", icon: "🏠" },
-  { label: "Import CSVs", href: "/import", icon: "📥" },
-  { label: "Leads", href: "#", icon: "👥", soon: true },
-  { label: "Accounts", href: "#", icon: "🏢", soon: true },
-  { label: "Reports", href: "#", icon: "📊", soon: true },
+  { label: "Home", href: "/crm", icon: "⌂" },
+  { label: "Import CSVs", href: "/import", icon: "⇪" },
+  { label: "Email Generator", href: "/emails", icon: "✉" },
+  { label: "Leads", href: "#", icon: "•", soon: true },
+  { label: "Accounts", href: "#", icon: "•", soon: true },
+  { label: "Reports", href: "#", icon: "•", soon: true },
 ];
 
 export function AppShell({ title, subtitle, children }: AppShellProps) {
@@ -70,7 +71,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
       <aside className={`sidebar ${expanded ? "expanded" : ""}`}>
         <div className="sidebar__brand">
           <button className="sidebar__toggle" onClick={() => setExpanded((x) => !x)} aria-label="Toggle menu">
-            ☰
+            ƒ~ø
           </button>
           <div className="sidebar__logo">
             <Image src="/copper.png" alt="Copper" width={40} height={40} />
@@ -104,7 +105,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
 
         <div className="sidebar__footer">
           <button className="sidebar__signout" onClick={handleSignOut}>
-            <span className="icon">↩</span>
+            <span className="icon">ƒ+c</span>
             {expanded && <span className="label">Sign out</span>}
           </button>
         </div>

@@ -12,6 +12,12 @@ const tiles = [
     cta: "Start import",
   },
   {
+    title: "AI Emails",
+    desc: "Generate first-touch emails for leads without outreach.",
+    href: "/emails",
+    cta: "Open generator",
+  },
+  {
     title: "Leads",
     desc: "View and score your leads. Coming soon.",
     href: "#",
