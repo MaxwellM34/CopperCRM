@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from tortoise.expressions import Q
 
-from models import FirstEmail, Lead
+from models import FirstEmail, FirstEmailApproval, Lead
 from services.email_generation import (
     DEFAULT_MODEL,
     average_cost,
@@ -163,17 +163,14 @@ async def set_human_decision(payload: DecisionRequest):
     if payload.decision not in {"approved", "rejected"}:
         raise HTTPException(status_code=400, detail="decision must be approved or rejected")
 
-    email = (
-        await FirstEmail.filter(id=payload.id)
-        .prefetch_related("approval_record")
-        .first()
-    )
+    email = await FirstEmail.filter(id=payload.id).prefetch_related("approval_record").first()
     if not email:
         raise HTTPException(status_code=404, detail="Email not found")
 
-    approval = getattr(email, "approval_record", None)
+    approval = await FirstEmailApproval.get_or_none(first_email=email)
     if approval is None:
-        approval = await email.approval_record.create(
+        await FirstEmailApproval.create(
+            first_email=email,
             human_approval=(payload.decision == "approved"),
             overall_approval=(payload.decision == "approved"),
             human_reviewed=True,

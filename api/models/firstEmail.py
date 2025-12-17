@@ -53,19 +53,19 @@ class FirstEmailApproval(models.Model):
     human_approval = fields.BooleanField(default=False)
     human_reviewed = fields.BooleanField(default=False)
     structure_and_clarity = fields.IntField(
-        null=False,
+        null=True,
         constraints={"structure_and_clarity BETWEEN 0 AND 7"},
     )
     deliverability = fields.IntField(
-        null=False,
+        null=True,
         constraints={"structure_and_clarity BETWEEN 0 AND 7"},
     )
     value_proposition = fields.IntField(
-        null=False,
+        null=True,
         constraints={"structure_and_clarity BETWEEN 0 AND 7"},
     )
     customer_reaction = fields.IntField(
-        null=False,
+        null=True,
         constraints={"structure_and_clarity BETWEEN 0 AND 7"},
     )
 

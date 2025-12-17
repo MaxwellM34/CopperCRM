@@ -36,6 +36,7 @@ export default function ApproveEmailsPage() {
   const [message, setMessage] = useState("Loading next email...");
   const [flash, setFlash] = useState<"approve" | "reject" | null>(null);
   const [pendingCount, setPendingCount] = useState<number | null>(null);
+  const [deciding, setDeciding] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
   const dragging = useRef(false);
@@ -73,7 +74,8 @@ export default function ApproveEmailsPage() {
   }, []);
 
   const sendDecision = async (decision: "approved" | "rejected") => {
-    if (!email) return;
+    if (!email || deciding) return;
+    setDeciding(true);
     setFlash(decision === "approved" ? "approve" : "reject");
     try {
       await fetch(`${apiBase}/first-emails/decision`, {
@@ -84,7 +86,8 @@ export default function ApproveEmailsPage() {
     } catch (e: any) {
       setMessage(`Failed to send decision: ${e?.message || e}`);
     } finally {
-      setTimeout(fetchNext, 120);
+      await fetchNext();
+      setDeciding(false);
     }
   };
 

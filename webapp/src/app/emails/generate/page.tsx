@@ -5,7 +5,7 @@ import AppShell from "../../../components/AppShell";
 import { storage } from "../../../lib/storage";
 
 type EmailStats = {
-  pending: number;
+  pending_to_generate: number;
   generated: number;
   average_cost_usd: number;
   estimated_total_cost_usd: number;
@@ -37,7 +37,7 @@ export default function EmailGeneratorPage() {
   const [message, setMessage] = useState<string>("Pick how many leads to generate for.");
   const [lastRun, setLastRun] = useState<GenerateResponse | null>(null);
 
-  const pending = stats?.pending ?? 0;
+  const pending = stats?.pending_to_generate ?? 0;
   const selected = Math.min(count ?? pending, pending || 0);
   const estimatedCost = stats ? (stats.average_cost_usd || 0) * (selected || 0) : 0;
 
