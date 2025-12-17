@@ -1,26 +1,23 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-from tortoise.contrib.fastapi import register_tortoise
 from tortoise import Tortoise
-from openai_schema import write_openai_schema 
-
+from tortoise.contrib.fastapi import register_tortoise
 
 from config import Config
-from routers.imports import router as leads_router
+from openai_schema import write_openai_schema
 from routers.auth import router as auth_router
-from routers.users import router as users_router
 from routers.first_emails import router as first_emails_router
-
-# routers (adjust names to your project)
-# from routers.posts import router as posts_router
+from routers.imports import router as leads_router
+from routers.users import router as users_router
 
 
 def init_db(app: FastAPI) -> None:
     register_tortoise(
         app,
         config=Config.TORTOISE_ORM,
-        generate_schemas=False,          # OK for now; later replace with Aerich migrations
+        generate_schemas=False,  # OK for now; later replace with Aerich migrations
         add_exception_handlers=True,
     )
 
@@ -29,11 +26,11 @@ def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         # --- startup ---
+        print("Using DB config:", Config.TORTOISE_ORM)
         await Tortoise.init(config=Config.TORTOISE_ORM)
 
-        write_openai_schema(app) # later if I want to be doing the thingy thangs with the ai
-        print("✅ Generated openai_tools.json")
-       
+        write_openai_schema(app)  # writes openai_tools.json for tooling
+        print("Generated openai_tools.json")
 
         yield
 
@@ -50,21 +47,19 @@ def create_app() -> FastAPI:
             "http://127.0.0.1:8000",
             "http://127.0.0.1:3000",
             "http://localhost:3000",
-            "https://crm-api-468831678336.us-central1.run.app"
-            "https://crm-frontend-468831678336.us-central1.run.app"
-            # Add your Cloud Run URL later (once created)
+            "https://crm-api-468831678336.us-central1.run.app",
+            "https://crm-frontend-468831678336.us-central1.run.app",
         ],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # Routers (uncomment when you have them)
+    # Routers
     app.include_router(auth_router)
     app.include_router(leads_router)
     app.include_router(users_router)
     app.include_router(first_emails_router)
-    # app.include_router(posts_router)
 
     init_db(app)
     return app

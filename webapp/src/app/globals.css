@@ -301,7 +301,9 @@ a {
 }
 
 .sidebar__link .icon {
-  font-size: 16px;
+  font-size: 18px;
+  width: 26px;
+  text-align: center;
 }
 
 .sidebar__link .label {
@@ -358,6 +360,13 @@ a {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.app-inner {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 18px;
 }
 
 .app-header {

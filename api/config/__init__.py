@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
-load_dotenv()
+
+# Always prefer repo .env over pre-set environment variables to avoid stale ENV/PG values.
+load_dotenv(override=True)
 
 def _get_env() -> str:
     return os.getenv("ENV", "local").strip().lower()

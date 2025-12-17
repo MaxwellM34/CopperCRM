@@ -184,7 +184,7 @@ def get_openai_client() -> AsyncOpenAI:
 
 async def generate_and_store_email(
     lead: Lead,
-    user: User,
+    user: User | None,
     client: AsyncOpenAI,
     model: str = DEFAULT_MODEL,
 ) -> tuple[FirstEmail, Decimal | None]:

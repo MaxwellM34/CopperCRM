@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import AppShell from "../../components/AppShell";
 import { storage } from "../../lib/storage";
 
@@ -23,13 +23,11 @@ type GenerateResponse = {
 };
 
 export default function EmailGeneratorPage() {
-  const apiBase = useMemo(
-    () =>
-      (process.env.NEXT_PUBLIC_API_BASE || storage.getApiBaseUrl() || "http://127.0.0.1:8000").replace(
-        /\/$/,
-        "",
-      ),
-    [],
+  const [apiBase, setApiBase] = useState<string>(() =>
+    (process.env.NEXT_PUBLIC_API_BASE || storage.getApiBaseUrl() || "http://127.0.0.1:8000").replace(
+      /\/$/,
+      "",
+    ),
   );
 
   const [stats, setStats] = useState<EmailStats | null>(null);
@@ -63,7 +61,7 @@ export default function EmailGeneratorPage() {
       const data = await res.json();
       setStats(data);
     } catch (e: any) {
-      setMessage(e?.message || "Failed to load stats.");
+      setMessage(`Failed to load stats from ${apiBase}: ${e?.message || e}`);
     } finally {
       setLoadingStats(false);
     }
@@ -113,7 +111,7 @@ export default function EmailGeneratorPage() {
       }
       await fetchStats();
     } catch (e: any) {
-      setMessage(e?.message || "Generation failed.");
+      setMessage(`Generation failed calling ${apiBase}: ${e?.message || e}`);
     } finally {
       setBusy(false);
     }
@@ -232,6 +230,22 @@ export default function EmailGeneratorPage() {
       <section className="glass rounded-2xl p-6">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Last run</h3>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <span>API: {apiBase}</span>
+            <button
+              className="btn subtle text-xs"
+              onClick={() => {
+                const local = "http://127.0.0.1:8000";
+                storage.setApiBaseUrl(local);
+                setApiBase(local);
+                setMessage(`API base set to ${local}. Reloading stats...`);
+                fetchStats();
+              }}
+              disabled={busy}
+            >
+              Use local
+            </button>
+          </div>
           <button
             className="btn subtle text-sm"
             onClick={() => fetchStats()}

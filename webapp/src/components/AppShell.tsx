@@ -20,12 +20,12 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { label: "Home", href: "/crm", icon: "⌂" },
-  { label: "Import CSVs", href: "/import", icon: "⇪" },
-  { label: "Email Generator", href: "/emails", icon: "✉" },
-  { label: "Leads", href: "#", icon: "•", soon: true },
-  { label: "Accounts", href: "#", icon: "•", soon: true },
-  { label: "Reports", href: "#", icon: "•", soon: true },
+  { label: "Home", href: "/crm", icon: "🏠" },
+  { label: "Import CSVs", href: "/import", icon: "📤" },
+  { label: "Email Generator", href: "/emails", icon: "✉️" },
+  { label: "Leads", href: "#", icon: "👥", soon: true },
+  { label: "Accounts", href: "#", icon: "🏢", soon: true },
+  { label: "Reports", href: "#", icon: "📊", soon: true },
 ];
 
 export function AppShell({ title, subtitle, children }: AppShellProps) {
@@ -71,7 +71,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
       <aside className={`sidebar ${expanded ? "expanded" : ""}`}>
         <div className="sidebar__brand">
           <button className="sidebar__toggle" onClick={() => setExpanded((x) => !x)} aria-label="Toggle menu">
-            ƒ~ø
+            ☰
           </button>
           <div className="sidebar__logo">
             <Image src="/copper.png" alt="Copper" width={40} height={40} />
@@ -112,19 +112,21 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
       </aside>
 
       <div className="app-main">
-        <header className="app-header">
-          <div>
-            <p className="eyebrow">Copper CRM</p>
-            <h1>{title}</h1>
-            {subtitle && <p className="muted">{subtitle}</p>}
-          </div>
-          <div className="header-actions">
-            <button className="ghost-btn" onClick={handleSignOut}>
-              Sign out
-            </button>
-          </div>
-        </header>
-        <div className="app-content">{children}</div>
+        <div className="app-inner">
+          <header className="app-header">
+            <div>
+              <p className="eyebrow">Copper CRM</p>
+              <h1>{title}</h1>
+              {subtitle && <p className="muted">{subtitle}</p>}
+            </div>
+            <div className="header-actions">
+              <button className="ghost-btn" onClick={handleSignOut}>
+                Sign out
+              </button>
+            </div>
+          </header>
+          <div className="app-content">{children}</div>
+        </div>
       </div>
     </div>
   );

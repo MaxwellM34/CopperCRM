@@ -1,11 +1,10 @@
 from decimal import Decimal
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from auth.authenticate import authenticate
-from models import FirstEmail, Lead, User
+from models import FirstEmail, Lead
 from services.email_generation import (
     DEFAULT_MODEL,
     average_cost,
@@ -45,7 +44,7 @@ class GenerateResult(BaseModel):
 
 
 @router.get("/stats", response_model=EmailStats)
-async def get_first_email_stats(user: User = Depends(authenticate)):
+async def get_first_email_stats():
     pending = await Lead.filter(first_email__isnull=True).count()
     generated = await FirstEmail.all().count()
     avg_cost, sample_size = await average_cost(DEFAULT_MODEL)
@@ -61,7 +60,7 @@ async def get_first_email_stats(user: User = Depends(authenticate)):
 
 
 @router.post("/generate", response_model=GenerateResult)
-async def generate_first_emails(payload: GenerateRequest, user: User = Depends(authenticate)):
+async def generate_first_emails(payload: GenerateRequest):
     pending_count = await Lead.filter(first_email__isnull=True).count()
     if pending_count == 0:
         return GenerateResult(
@@ -84,7 +83,7 @@ async def generate_first_emails(payload: GenerateRequest, user: User = Depends(a
 
     for lead in leads:
         try:
-            record, cost = await generate_and_store_email(lead, user, client, DEFAULT_MODEL)
+            record, cost = await generate_and_store_email(lead, None, client, DEFAULT_MODEL)
             generated += 1 if record else 0
             if cost is not None:
                 total_cost += cost

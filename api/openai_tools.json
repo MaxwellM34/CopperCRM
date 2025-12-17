@@ -271,6 +271,68 @@
           }
         ]
       }
+    },
+    "/first-emails/stats": {
+      "get": {
+        "tags": [
+          "first-emails"
+        ],
+        "summary": "Get First Email Stats",
+        "operationId": "get_first_email_stats_first_emails_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailStats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/first-emails/generate": {
+      "post": {
+        "tags": [
+          "first-emails"
+        ],
+        "summary": "Generate First Emails",
+        "operationId": "generate_first_emails_first_emails_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -288,6 +350,111 @@
           "file"
         ],
         "title": "Body_importLeadsCSV_leads_import_post"
+      },
+      "EmailStats": {
+        "properties": {
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          },
+          "generated": {
+            "type": "integer",
+            "title": "Generated"
+          },
+          "average_cost_usd": {
+            "type": "number",
+            "title": "Average Cost Usd"
+          },
+          "estimated_total_cost_usd": {
+            "type": "number",
+            "title": "Estimated Total Cost Usd"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "sample_size": {
+            "type": "integer",
+            "title": "Sample Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pending",
+          "generated",
+          "average_cost_usd",
+          "estimated_total_cost_usd",
+          "model",
+          "sample_size"
+        ],
+        "title": "EmailStats"
+      },
+      "GenerateRequest": {
+        "properties": {
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 500.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count",
+            "description": "How many leads to generate emails for (omit to use all pending)."
+          }
+        },
+        "type": "object",
+        "title": "GenerateRequest"
+      },
+      "GenerateResult": {
+        "properties": {
+          "attempted": {
+            "type": "integer",
+            "title": "Attempted"
+          },
+          "generated": {
+            "type": "integer",
+            "title": "Generated"
+          },
+          "pending_after": {
+            "type": "integer",
+            "title": "Pending After"
+          },
+          "total_cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Cost Usd"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attempted",
+          "generated",
+          "pending_after",
+          "total_cost_usd",
+          "model"
+        ],
+        "title": "GenerateResult"
       },
       "HTTPValidationError": {
         "properties": {
