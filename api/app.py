@@ -12,6 +12,8 @@ from routers.first_emails import router as first_emails_router
 from routers.imports import router as leads_router
 from routers.users import router as users_router
 from routers.approval_stats import router as approval_stats_router
+from routers.lead_display import router as lead_display_router
+from services.gender_infer import backfill_lead_genders
 
 
 def init_db(app: FastAPI) -> None:
@@ -32,6 +34,13 @@ def create_app() -> FastAPI:
 
         write_openai_schema(app)  # writes openai_tools.json for tooling
         print("Generated openai_tools.json")
+        # Backfill genders for existing leads using the name-based detector
+        try:
+            updated = await backfill_lead_genders()
+            if updated:
+                print(f"Updated gender for {updated} leads")
+        except Exception as exc:  # noqa: BLE001
+            print(f"Gender backfill skipped: {exc}")
 
         yield
 
@@ -62,6 +71,7 @@ def create_app() -> FastAPI:
     app.include_router(users_router)
     app.include_router(first_emails_router)
     app.include_router(approval_stats_router)
+    app.include_router(lead_display_router)
 
     init_db(app)
     return app

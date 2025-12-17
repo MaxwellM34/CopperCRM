@@ -21,9 +21,9 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: "Home", href: "/crm", icon: "🏠" },
-  { label: "Import CSVs", href: "/import", icon: "📤" },
+  { label: "Import CSVs", href: "/import", icon: "📥" },
   { label: "Email Generator", href: "/emails", icon: "✉️" },
-  { label: "Leads", href: "#", icon: "👥", soon: true },
+  { label: "Leads", href: "/leads", icon: "🧑‍💼" },
   { label: "Accounts", href: "#", icon: "🏢", soon: true },
   { label: "Reports", href: "/reports", icon: "📊" },
 ];

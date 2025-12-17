@@ -34,6 +34,7 @@ class Lead(models.Model):
     primary_work_email_source = fields.CharField(max_length=100, null=True)
     work_email_service_provider = fields.CharField(max_length=100, null=True)
     catch_all_status = fields.BooleanField(default=False, null=True)
+    gender = fields.CharField(max_length=20, default="unknown_gender")
     person_address = fields.CharField(max_length=255, null=True)
     country = fields.CharField(max_length=100, null=True)
     personal_linkedin = fields.CharField(max_length=255, null=True)

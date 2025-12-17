@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 import io
 import csv
 
+from services.gender_infer import infer_gender_by_name
+
 router = APIRouter(prefix='/leads', tags=['leads'])
 
 # Classes are missing db exclusive fields
@@ -226,13 +228,17 @@ async def importLeadsCSV(file: UploadFile = File(...), user: User = Depends(auth
                         if v is not None:
                             setattr(lead_obj, k, v)
                     lead_obj.company = company_obj
+                    if lead_row.first_name:
+                        lead_obj.gender = infer_gender_by_name(lead_row.first_name)
                     lead_obj.updated_by = user
                     await lead_obj.save()
                     result.leads_updated += 1
                 else:
+                    gender = infer_gender_by_name(lead_row.first_name)
                     await Lead.create(
                         **lead_row.model_dump(),
                         company=company_obj,
+                        gender=gender,
                         created_by=user,
                         updated_by=user,
                     )

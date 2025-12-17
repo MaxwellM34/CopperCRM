@@ -133,8 +133,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Delete User",
-        "operationId": "delete_user_users_delete_user_delete",
+        "summary": "Deleteuser",
+        "operationId": "deleteuser_users_delete_user_delete",
         "requestBody": {
           "content": {
             "application/json": {
@@ -153,7 +153,7 @@
                 "schema": {
                   "additionalProperties": true,
                   "type": "object",
-                  "title": "Response Delete User Users Delete User Delete"
+                  "title": "Response Deleteuser Users Delete User Delete"
                 }
               }
             }
@@ -427,6 +427,36 @@
           }
         }
       }
+    },
+    "/leads/display": {
+      "get": {
+        "tags": [
+          "leads"
+        ],
+        "summary": "Displayleads",
+        "operationId": "displayLeads_leads_display_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LeadDisplay"
+                  },
+                  "type": "array",
+                  "title": "Response Displayleads Leads Display Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -654,6 +684,158 @@
         },
         "type": "object",
         "title": "LeadCompanyImportResult"
+      },
+      "LeadDisplay": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "work_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Email"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "person_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Address"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "personal_linkedin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personal Linkedin"
+          },
+          "seniority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seniority"
+          },
+          "departments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "work_email",
+          "gender",
+          "first_name",
+          "last_name",
+          "company_name",
+          "job_title",
+          "person_address",
+          "country",
+          "personal_linkedin",
+          "seniority",
+          "departments"
+        ],
+        "title": "LeadDisplay"
       },
       "PendingEmail": {
         "properties": {

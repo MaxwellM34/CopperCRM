@@ -258,6 +258,7 @@ dependencies = [
     { name = "fastapi-users" },
     { name = "fastapi-users-db-tortoise" },
     { name = "gcloud" },
+    { name = "gender-guesser" },
     { name = "google-auth" },
     { name = "openai" },
     { name = "python-dotenv" },
@@ -273,6 +274,7 @@ requires-dist = [
     { name = "fastapi-users", specifier = ">=15.0.1" },
     { name = "fastapi-users-db-tortoise", specifier = ">=2.0.0" },
     { name = "gcloud", specifier = ">=0.18.3" },
+    { name = "gender-guesser", specifier = ">=0.4.0" },
     { name = "google-auth", specifier = ">=2.43.0" },
     { name = "openai", specifier = ">=1.52.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
@@ -433,6 +435,15 @@ dependencies = [
     { name = "six" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/11/ab/d0cee58db2d8445c26e6f5db25d9b1f1aa14a3ab30eea8ce77ae808d10ef/gcloud-0.18.3.tar.gz", hash = "sha256:0af2dec59fce20561752f86e42d981c6a255e306a6c5e5d1fa3d358a8857e4fb", size = 454375, upload-time = "2016-09-23T16:39:31.124Z" }
+
+[[package]]
+name = "gender-guesser"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/dc/69939b7af56b7adf3aa2736771b7c3e7191f7cd36fbc80b0727570c275fa/gender-guesser-0.4.0.tar.gz", hash = "sha256:1591c14592805ca7da06a46d5f7202511f7cb87547049a68dfccbeedb879f31b", size = 337238, upload-time = "2016-12-05T11:41:44.554Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/fb/3f2aac40cd2421e164cab1668e0ca10685fcf896bd6b3671088f8aab356e/gender_guesser-0.4.0-py2.py3-none-any.whl", hash = "sha256:7cb01ce5d8d43b94573498bc02c959b622872abd399622ca67d1b73ba6e7e222", size = 379297, upload-time = "2016-12-05T11:41:47.759Z" },
+]
 
 [[package]]
 name = "google-auth"

@@ -35,7 +35,7 @@ async def create_user(payload: UserCreate, user: User = Depends(authenticate)):
     return {"id": user.id, "email": user.email}
 
 @router.delete("/delete user", response_model=dict)
-async def delete_user(payload: UserDelete, user: User = Depends(authenticate)):
+async def deleteuser(payload: UserDelete, user: User = Depends(authenticate)):
     if not await User.filter(email=payload.email).exists():
         raise HTTPException(status_code=404, detail="User not found")
 

@@ -12,6 +12,7 @@ dependencies = [
     "fastapi-users-db-tortoise>=2.0.0",
     "gcloud>=0.18.3",
     "google-auth>=2.43.0",
+    "gender-guesser>=0.4.0",
     "openai>=1.52.0",
     "python-dotenv>=1.2.1",
     "tortoise-orm>=0.18.1",
