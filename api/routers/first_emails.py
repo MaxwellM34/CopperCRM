@@ -43,6 +43,16 @@ class GenerateResult(BaseModel):
     errors: list[str] = Field(default_factory=list)
 
 
+class PendingEmail(BaseModel):
+    id: int
+    first_email: str
+    lead_name: str | None = None
+    lead_email: str | None = None
+    lead_title: str | None = None
+    company_name: str | None = None
+    human_approval: bool | None = None
+
+
 @router.get("/stats", response_model=EmailStats)
 async def get_first_email_stats():
     pending = await Lead.filter(first_email__isnull=True).count()
@@ -102,3 +112,63 @@ async def generate_first_emails(payload: GenerateRequest):
         model=DEFAULT_MODEL,
         errors=errors,
     )
+
+
+@router.get("/next", response_model=PendingEmail | dict)
+async def get_next_email_for_human_review():
+    email = (
+        await FirstEmail.filter(
+            approval_record__human_approval=None,
+        )
+        .prefetch_related("lead__company", "approval_record")
+        .order_by("-created_at")
+        .first()
+    )
+    if not email:
+        return {"status": "no_pending"}
+
+    lead = getattr(email, "lead", None)
+    company = getattr(lead, "company", None) if lead else None
+    approval = getattr(email, "approval_record", None)
+
+    return PendingEmail(
+        id=email.id,
+        first_email=email.first_email,
+        lead_name=f"{lead.first_name} {lead.last_name}".strip() if lead else None,
+        lead_email=(lead.work_email or lead.email) if lead else None,
+        lead_title=lead.job_title if lead else None,
+        company_name=company.company_name if company else None,
+        human_approval=approval.human_approval if approval else None,
+    )
+
+
+class DecisionRequest(BaseModel):
+    id: int
+    decision: str
+
+
+@router.post("/decision", response_model=dict)
+async def set_human_decision(payload: DecisionRequest):
+    if payload.decision not in {"approved", "rejected"}:
+        raise HTTPException(status_code=400, detail="decision must be approved or rejected")
+
+    email = (
+        await FirstEmail.filter(id=payload.id)
+        .prefetch_related("approval_record")
+        .first()
+    )
+    if not email:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+    approval = getattr(email, "approval_record", None)
+    if approval is None:
+        approval = await email.approval_record.create(
+            human_approval=(payload.decision == "approved"),
+            overall_approval=(payload.decision == "approved"),
+        )
+    else:
+        approval.human_approval = payload.decision == "approved"
+        approval.overall_approval = payload.decision == "approved"
+        await approval.save()
+
+    return {"status": "ok", "id": email.id, "decision": payload.decision}

@@ -13,9 +13,9 @@ const tiles = [
   },
   {
     title: "AI Emails",
-    desc: "Generate first-touch emails for leads without outreach.",
+    desc: "Generate or approve first-touch emails.",
     href: "/emails",
-    cta: "Open generator",
+    cta: "Open AI emails",
   },
   {
     title: "Leads",
@@ -44,7 +44,7 @@ export default function CrmHome() {
         <div className="crm-hero__copy">
           <p className="eyebrow">Welcome back</p>
           <h2>Everything starts here.</h2>
-          <p className="muted">Quickly hop to imports or browse upcoming CRM areas.</p>
+          <p className="muted">CRM simplified by Dr. Copper.</p>
           <div className="actions">
             <Link href="/import" className="btn primary">Go to Imports</Link>
             <button className="btn ghost" onClick={() => window.scrollTo({ top: 500, behavior: "smooth" })}>

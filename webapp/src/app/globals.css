@@ -426,6 +426,59 @@ a {
   background: transparent;
 }
 
+.btn-approve {
+  border: none;
+  background: #22c55e;
+  color: #022c22;
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(34, 197, 94, 0.3);
+}
+
+.btn-reject {
+  border: none;
+  background: #ef4444;
+  color: #450a0a;
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
+}
+
+.decision-flash {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+  z-index: 40;
+}
+
+.decision-flash-inner {
+  padding: 24px 32px;
+  border-radius: 999px;
+  font-size: 2rem;
+  font-weight: 800;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.decision-flash-approve {
+  background: radial-gradient(circle at top left, #bbf7d0, #166534);
+  color: #022c22;
+  opacity: 0.95;
+}
+
+.decision-flash-reject {
+  background: radial-gradient(circle at top left, #fecaca, #991b1b);
+  color: #450a0a;
+  opacity: 0.95;
+}
+
 .crm-hero {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

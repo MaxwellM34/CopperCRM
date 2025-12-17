@@ -42,9 +42,15 @@ class FirstEmail(models.Model):
 
 class FirstEmailApproval(models.Model):
     id = fields.IntField(pk=True)
+    first_email = fields.OneToOneField(
+        "models.FirstEmail",
+        related_name="approval_record",
+        on_delete=fields.CASCADE,
+        null=True,
+    )
     overall_approval = fields.BooleanField(default=False)
     algorithm_approval = fields.BooleanField(default=False)
-    human_approval = fields.BooleanField(default=False)
+    human_approval = fields.BooleanField(null=False)
     structure_and_clarity = fields.IntField(
         null=False,
         constraints={"structure_and_clarity BETWEEN 0 AND 7"},
