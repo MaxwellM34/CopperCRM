@@ -11,6 +11,7 @@ from routers.auth import router as auth_router
 from routers.first_emails import router as first_emails_router
 from routers.imports import router as leads_router
 from routers.users import router as users_router
+from routers.approval_stats import router as approval_stats_router
 
 
 def init_db(app: FastAPI) -> None:
@@ -60,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(leads_router)
     app.include_router(users_router)
     app.include_router(first_emails_router)
+    app.include_router(approval_stats_router)
 
     init_db(app)
     return app

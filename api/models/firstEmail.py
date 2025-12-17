@@ -50,7 +50,8 @@ class FirstEmailApproval(models.Model):
     )
     overall_approval = fields.BooleanField(default=False)
     algorithm_approval = fields.BooleanField(default=False)
-    human_approval = fields.BooleanField(null=False)
+    human_approval = fields.BooleanField(default=False)
+    human_reviewed = fields.BooleanField(default=False)
     structure_and_clarity = fields.IntField(
         null=False,
         constraints={"structure_and_clarity BETWEEN 0 AND 7"},

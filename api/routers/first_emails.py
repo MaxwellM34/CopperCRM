@@ -3,6 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+from tortoise.expressions import Q
 
 from models import FirstEmail, Lead
 from services.email_generation import (
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/first-emails", tags=["first-emails"])
 
 
 class EmailStats(BaseModel):
-    pending: int
+    pending_to_generate: int
     generated: int
     average_cost_usd: float
     estimated_total_cost_usd: float
@@ -46,11 +47,16 @@ class GenerateResult(BaseModel):
 class PendingEmail(BaseModel):
     id: int
     first_email: str
+    created_at: str | None = None
     lead_name: str | None = None
+    lead_first_name: str | None = None
+    lead_last_name: str | None = None
     lead_email: str | None = None
+    lead_work_email: str | None = None
     lead_title: str | None = None
     company_name: str | None = None
     human_approval: bool | None = None
+    human_reviewed: bool | None = None
 
 
 @router.get("/stats", response_model=EmailStats)
@@ -60,7 +66,7 @@ async def get_first_email_stats():
     avg_cost, sample_size = await average_cost(DEFAULT_MODEL)
     estimated_total = Decimal(pending) * avg_cost
     return EmailStats(
-        pending=pending,
+        pending_to_generate=pending,
         generated=generated,
         average_cost_usd=float(avg_cost),
         estimated_total_cost_usd=float(estimated_total),
@@ -118,7 +124,7 @@ async def generate_first_emails(payload: GenerateRequest):
 async def get_next_email_for_human_review():
     email = (
         await FirstEmail.filter(
-            approval_record__human_approval=None,
+            Q(approval_record__human_reviewed=False) | Q(approval_record=None)
         )
         .prefetch_related("lead__company", "approval_record")
         .order_by("-created_at")
@@ -134,11 +140,16 @@ async def get_next_email_for_human_review():
     return PendingEmail(
         id=email.id,
         first_email=email.first_email,
+        created_at=email.created_at.isoformat() if email.created_at else None,
         lead_name=f"{lead.first_name} {lead.last_name}".strip() if lead else None,
-        lead_email=(lead.work_email or lead.email) if lead else None,
+        lead_first_name=lead.first_name if lead else None,
+        lead_last_name=lead.last_name if lead else None,
+        lead_email=lead.email if lead else None,
+        lead_work_email=lead.work_email if lead else None,
         lead_title=lead.job_title if lead else None,
         company_name=company.company_name if company else None,
         human_approval=approval.human_approval if approval else None,
+        human_reviewed=approval.human_reviewed if approval else None,
     )
 
 
@@ -165,10 +176,12 @@ async def set_human_decision(payload: DecisionRequest):
         approval = await email.approval_record.create(
             human_approval=(payload.decision == "approved"),
             overall_approval=(payload.decision == "approved"),
+            human_reviewed=True,
         )
     else:
         approval.human_approval = payload.decision == "approved"
         approval.overall_approval = payload.decision == "approved"
+        approval.human_reviewed = True
         await approval.save()
 
     return {"status": "ok", "id": email.id, "decision": payload.decision}

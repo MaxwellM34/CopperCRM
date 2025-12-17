@@ -79,6 +79,3 @@ class Company(models.Model):
 
     class Meta:  # type: ignore
         table = "companies"
-
-class DashboardLeads(models.Model):
-    

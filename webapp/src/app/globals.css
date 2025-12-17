@@ -479,6 +479,42 @@ a {
   opacity: 0.95;
 }
 
+.approval-card {
+  overflow: hidden;
+}
+
+.swipe-badge {
+  position: absolute;
+  top: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 2px solid;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease-out;
+}
+
+.swipe-badge-approve {
+  right: 14px;
+  color: #22c55e;
+  border-color: #22c55e;
+  transform: rotate(8deg);
+}
+
+.swipe-badge-reject {
+  left: 14px;
+  color: #ef4444;
+  border-color: #ef4444;
+  transform: rotate(-8deg);
+}
+
+.email-body {
+  max-height: 480px;
+  overflow-y: auto;
+}
+
 .crm-hero {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

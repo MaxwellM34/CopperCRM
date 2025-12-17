@@ -333,10 +333,117 @@
           }
         }
       }
+    },
+    "/first-emails/next": {
+      "get": {
+        "tags": [
+          "first-emails"
+        ],
+        "summary": "Get Next Email For Human Review",
+        "operationId": "get_next_email_for_human_review_first_emails_next_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PendingEmail"
+                    },
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    }
+                  ],
+                  "title": "Response Get Next Email For Human Review First Emails Next Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/first-emails/decision": {
+      "post": {
+        "tags": [
+          "first-emails"
+        ],
+        "summary": "Set Human Decision",
+        "operationId": "set_human_decision_first_emails_decision_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Set Human Decision First Emails Decision Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/approval-stats/": {
+      "get": {
+        "tags": [
+          "first-emails"
+        ],
+        "summary": "Get Approval Stats",
+        "operationId": "get_approval_stats_approval_stats__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalStats"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "ApprovalStats": {
+        "properties": {
+          "pending_for_approval": {
+            "type": "integer",
+            "title": "Pending For Approval"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pending_for_approval"
+        ],
+        "title": "ApprovalStats"
+      },
       "Body_importLeadsCSV_leads_import_post": {
         "properties": {
           "file": {
@@ -351,11 +458,29 @@
         ],
         "title": "Body_importLeadsCSV_leads_import_post"
       },
+      "DecisionRequest": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "decision": {
+            "type": "string",
+            "title": "Decision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "decision"
+        ],
+        "title": "DecisionRequest"
+      },
       "EmailStats": {
         "properties": {
-          "pending": {
+          "pending_to_generate": {
             "type": "integer",
-            "title": "Pending"
+            "title": "Pending To Generate"
           },
           "generated": {
             "type": "integer",
@@ -380,7 +505,7 @@
         },
         "type": "object",
         "required": [
-          "pending",
+          "pending_to_generate",
           "generated",
           "average_cost_usd",
           "estimated_total_cost_usd",
@@ -529,6 +654,134 @@
         },
         "type": "object",
         "title": "LeadCompanyImportResult"
+      },
+      "PendingEmail": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "first_email": {
+            "type": "string",
+            "title": "First Email"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "lead_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Name"
+          },
+          "lead_first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead First Name"
+          },
+          "lead_last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Last Name"
+          },
+          "lead_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Email"
+          },
+          "lead_work_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Work Email"
+          },
+          "lead_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Title"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "human_approval": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Human Approval"
+          },
+          "human_reviewed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Human Reviewed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "first_email"
+        ],
+        "title": "PendingEmail"
       },
       "UserAdminize": {
         "properties": {
