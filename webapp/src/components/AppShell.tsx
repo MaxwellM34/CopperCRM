@@ -105,7 +105,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
 
         <div className="sidebar__footer">
           <button className="sidebar__signout" onClick={handleSignOut}>
-            <span className="icon">ƒ+c</span>
+            <span className="icon">↩</span>
             {expanded && <span className="label">Sign out</span>}
           </button>
         </div>

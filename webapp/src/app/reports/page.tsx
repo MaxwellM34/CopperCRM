@@ -26,72 +26,70 @@ const conversionSteps = [
   { label: "Won", value: "18" },
 ];
 
-const sequenceHealth = [
-  { label: "Sequence A (SDR)", value: "52.3% open · 9.1% reply", delta: "+1.2 pts" },
-  { label: "Sequence B (AE)", value: "48.7% open · 7.6% reply", delta: "+0.4 pts" },
-  { label: "Sequence C (Nurture)", value: "35.2% open · 4.2% reply", delta: "-0.6 pts" },
-];
-
 export default function ReportsPage() {
   return (
     <AppShell title="Reports" subtitle="Sample dashboard with placeholder charts and CRM metrics.">
-      <div className="reports-grid">
-        <div className="report-card">
-          <PanelHeader title="Outbound snapshot" pill="Last 7d" />
-          <div className="bar-grid">
-            {bars.map((b) => (
-              <div key={b.label} className="bar-card">
-                <p className="muted text-xs uppercase tracking-wide">{b.label}</p>
-                <div className="bar-shell">
-                  <div
-                    className="bar-fill"
-                    style={{ height: `${Math.max(12, b.value)}%`, background: b.fill }}
-                  />
+      <div className="reports-wrap">
+        <div className="reports-grid">
+          <div className="report-card">
+            <PanelHeader title="Outbound snapshot" pill="Last 7d" />
+            <div className="bar-grid">
+              {bars.map((b) => (
+                <div key={b.label} className="bar-card">
+                  <p className="muted text-xs uppercase tracking-wide">{b.label}</p>
+                  <div className="bar-shell">
+                    <div
+                      className="bar-fill"
+                      style={{ height: `${Math.max(12, b.value)}%`, background: b.fill }}
+                    />
+                  </div>
+                  <p className="text-lg font-semibold">{b.value}%</p>
                 </div>
-                <p className="text-lg font-semibold">{b.value}%</p>
+              ))}
+            </div>
+          </div>
+
+          <div className="report-card">
+            <PanelHeader title="Opens trend" pill="Area chart" />
+            <div className="chart-shell">
+              <AreaChart points={areaPoints} />
+            </div>
+          </div>
+
+          <div className="report-card">
+            <PanelHeader title="Deliverability" pill="Sample" />
+            <div className="donut-row">
+              <div className="donut-shell">
+                <Donut data={donut} />
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="report-card">
-          <PanelHeader title="Opens trend" pill="Area chart" />
-          <div className="chart-shell">
-            <AreaChart points={areaPoints} />
-          </div>
-        </div>
-
-        <div className="report-card">
-          <PanelHeader title="Deliverability" pill="Sample" />
-          <div className="donut-shell">
-            <Donut data={donut} />
-          </div>
-          <div className="legend">
-            {donut.map((d) => (
-              <div key={d.label} className="legend-row">
-                <span className="legend-dot" style={{ backgroundColor: d.color }} />
-                <span className="muted">{d.label}</span>
-                <span className="legend-val">{d.value}%</span>
+              <div className="legend donut-legend">
+                {donut.map((d) => (
+                  <div key={d.label} className="legend-row">
+                    <span className="legend-dot" style={{ backgroundColor: d.color }} />
+                    <span className="muted">{d.label}</span>
+                    <span className="legend-val">{d.value}%</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
 
-        <div className="report-card">
-          <PanelHeader title="Funnel" pill="Placeholder" />
-          <div className="funnel">
-            {conversionSteps.map((step, idx) => (
-              <div key={step.label} className="funnel-row">
-                <div className="funnel-label">{step.label}</div>
-                <div className="funnel-bar">
-                  <div
-                    className="funnel-bar-fill"
-                    style={{ width: `${Math.max(8, 90 - idx * 12)}%` }}
-                  />
+          <div className="report-card">
+            <PanelHeader title="Funnel" pill="Placeholder" />
+            <div className="funnel">
+              {conversionSteps.map((step, idx) => (
+                <div key={step.label} className="funnel-row">
+                  <div className="funnel-label">{step.label}</div>
+                  <div className="funnel-bar">
+                    <div
+                      className="funnel-bar-fill"
+                      style={{ width: `${Math.max(8, 90 - idx * 12)}%` }}
+                    />
+                  </div>
+                  <div className="funnel-val">{step.value}</div>
                 </div>
-                <div className="funnel-val">{step.value}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -153,32 +151,34 @@ function buildPath(points: [number, number][]): string {
 function Donut({ data }: { data: { label: string; value: number; color: string }[] }) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
   let offset = 0;
-  const radius = 42;
+  const radius = 36;
   return (
-    <svg viewBox="0 0 120 120" className="mx-auto h-32 w-32">
+    <svg viewBox="0 0 110 110" className="mx-auto h-28 w-28">
       {data.map((d, idx) => {
         const dash = (d.value / total) * 2 * Math.PI * radius;
         const circle = (
           <circle
             key={idx}
             r={radius}
-            cx="60"
-            cy="60"
+            cx="55"
+            cy="55"
             fill="transparent"
             stroke={d.color}
             strokeWidth="14"
             strokeDasharray={`${dash} ${2 * Math.PI * radius}`}
             strokeDashoffset={offset}
-            transform="rotate(-90 60 60)"
+            transform="rotate(-90 55 55)"
           />
         );
         offset -= dash;
         return circle;
       })}
-      <circle r={28} cx="60" cy="60" fill="rgba(15,23,42,0.8)" />
-      <text x="60" y="58" textAnchor="middle" fill="#e2e8f0" fontSize="12" fontWeight="700">
+      <circle r={26} cx="55" cy="55" fill="rgba(15,23,42,0.8)" />
+      <text x="55" y="53" textAnchor="middle" fill="#e2e8f0" fontSize="11" fontWeight="700">
         Deliverability
       </text>
     </svg>
   );
 }
+
+

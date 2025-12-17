@@ -515,6 +515,144 @@ a {
   overflow-y: auto;
 }
 
+/* Reports layout */
+.reports-wrap {
+  max-width: 1400px;
+  margin: 8px auto 0;
+  padding: 0 12px;
+}
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-height: 0;
+}
+
+.report-card {
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(3, 7, 18, 0.9));
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  min-height: 260px;
+  max-height: 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.bar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.bar-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bar-shell {
+  height: 56px;
+  display: flex;
+  align-items: flex-end;
+}
+.bar-fill {
+  width: 100%;
+  border-radius: 10px;
+  background: linear-gradient(to top, #fb923c, #fcd34d);
+}
+
+.chart-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 170px;
+}
+
+.donut-shell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 0;
+}
+.donut-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.legend {
+  display: grid;
+  gap: 6px;
+}
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.legend-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+.legend-val {
+  font-weight: 600;
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.funnel-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 70px;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.funnel-bar {
+  height: 8px;
+  background: #0f172a;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.funnel-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f97316, #fcd34d);
+}
+.funnel-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-size: 11px;
+}
+.funnel-val {
+  text-align: right;
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .reports-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+}
+
 .crm-hero {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
