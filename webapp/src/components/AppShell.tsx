@@ -25,7 +25,7 @@ const navItems: NavItem[] = [
   { label: "Email Generator", href: "/emails", icon: "✉️" },
   { label: "Leads", href: "#", icon: "👥", soon: true },
   { label: "Accounts", href: "#", icon: "🏢", soon: true },
-  { label: "Reports", href: "#", icon: "📊", soon: true },
+  { label: "Reports", href: "/reports", icon: "📊" },
 ];
 
 export function AppShell({ title, subtitle, children }: AppShellProps) {
