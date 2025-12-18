@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   { label: "Email Generator", href: "/emails", icon: "✉️" },
   { label: "Leads", href: "/leads", icon: "🧑‍💼" },
   { label: "Accounts", href: "#", icon: "🏢", soon: true },
+  { label: "Build & Deploy", href: "#", icon: "🚀", soon: true },
   { label: "Reports", href: "/reports", icon: "📊" },
 ];
 
@@ -75,7 +76,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
           </button>
           <div className="sidebar__logo">
             <Image src="/copper.png" alt="Copper" width={40} height={40} />
-            {expanded && <span className="sidebar__name">Copper</span>}
+            {expanded && <span className="sidebar__name">Copper CRM</span>}
           </div>
         </div>
 

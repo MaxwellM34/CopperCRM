@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
     firstname: str
     lastname: str | None = None
 
+
 class UserDelete(BaseModel):
     email: str
 
@@ -20,8 +21,8 @@ class UserAdminize(BaseModel):
 
 ## Create / Delete
 
-@router.post("/", response_model=dict)
-async def create_user(payload: UserCreate, user: User = Depends(authenticate)):
+@router.post("/", response_model=UserCreate)
+async def create_user(payload: UserCreate):
     existing = await User.get_or_none(email=payload.email)
     if existing:
         raise HTTPException(status_code=400, detail="User already exists")
@@ -34,7 +35,7 @@ async def create_user(payload: UserCreate, user: User = Depends(authenticate)):
 
     return {"id": user.id, "email": user.email}
 
-@router.delete("/delete user", response_model=dict)
+@router.delete("/delete user", response_model=UserCreate)
 async def deleteuser(payload: UserDelete, user: User = Depends(authenticate)):
     if not await User.filter(email=payload.email).exists():
         raise HTTPException(status_code=404, detail="User not found")
@@ -43,6 +44,11 @@ async def deleteuser(payload: UserDelete, user: User = Depends(authenticate)):
 
     return {"id": user.id, "email": user.email}
 
+
+@router.get("/list users", response_model=list[dict])
+async def listuser():
+    
+    return await User.all().values("id", "email")
 
 ## Permissions
 

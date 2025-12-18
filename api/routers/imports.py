@@ -229,7 +229,7 @@ async def importLeadsCSV(file: UploadFile = File(...), user: User = Depends(auth
                             setattr(lead_obj, k, v)
                     lead_obj.company = company_obj
                     if lead_row.first_name:
-                        lead_obj.gender = infer_gender_by_name(lead_row.first_name)
+                        lead_obj.gender = infer_gender_by_name(lead_row.first_name) # type: ignore
                     lead_obj.updated_by = user
                     await lead_obj.save()
                     result.leads_updated += 1

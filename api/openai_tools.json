@@ -103,9 +103,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
-                  "title": "Response Create User Users  Post"
+                  "$ref": "#/components/schemas/UserCreate"
                 }
               }
             }
@@ -120,12 +118,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/users/delete user": {
@@ -151,9 +144,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
-                  "title": "Response Deleteuser Users Delete User Delete"
+                  "$ref": "#/components/schemas/UserCreate"
                 }
               }
             }
@@ -174,6 +165,32 @@
             "HTTPBearer": []
           }
         ]
+      }
+    },
+    "/users/list users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Listuser",
+        "operationId": "listuser_users_list_users_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response Listuser Users List Users Get"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/users/adminize": {
@@ -290,7 +307,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/first-emails/generate": {
@@ -331,7 +353,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/first-emails/next": {
@@ -361,7 +388,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/first-emails/decision": {
@@ -404,7 +436,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/approval-stats/": {

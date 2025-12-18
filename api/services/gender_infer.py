@@ -46,9 +46,9 @@ async def backfill_lead_genders() -> int:
     """
     updated = 0
     async for lead in Lead.filter(gender="unknown_gender"):
-        inferred = infer_gender_by_name(lead.first_name)
-        if inferred != lead.gender:
-            lead.gender = inferred
+        inferred = infer_gender_by_name(lead.first_name) #type: ignore
+        if inferred != lead.gender: #type: ignore
+            lead.gender = inferred #type: ignore
             await lead.save(update_fields=["gender"])
             updated += 1
     return updated

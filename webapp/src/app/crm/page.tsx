@@ -19,9 +19,9 @@ const tiles = [
   },
   {
     title: "Leads",
-    desc: "View and score your leads. Coming soon.",
-    href: "#",
-    soon: true,
+    desc: "View and score your leads.",
+    href: "/leads",
+    cta: "Open leads",
   },
   {
     title: "Accounts",
@@ -31,7 +31,13 @@ const tiles = [
   },
   {
     title: "Reports",
-    desc: "Pipeline and activity insights. Coming soon.",
+    desc: "Pipeline and activity insights.",
+    href: "/reports",
+    cta: "Open reports",
+  },
+  {
+    title: "Build & Deploy Pipeline",
+    desc: "CI/CD automation for the CRM. Coming soon.",
     href: "#",
     soon: true,
   },
@@ -46,7 +52,6 @@ export default function CrmHome() {
           <h2>Everything starts here.</h2>
           <p className="muted">CRM simplified by Dr. Copper.</p>
           <div className="actions">
-            <Link href="/import" className="btn primary">Go to Imports</Link>
             <button className="btn ghost" onClick={() => window.scrollTo({ top: 500, behavior: "smooth" })}>
               Browse sections
             </button>

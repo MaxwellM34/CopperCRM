@@ -1,11 +1,11 @@
 from decimal import Decimal
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from tortoise.expressions import Q
-
-from models import FirstEmail, FirstEmailApproval, Lead
+from auth.authenticate import authenticate
+from models import FirstEmail, FirstEmailApproval, Lead, User
 from services.email_generation import (
     DEFAULT_MODEL,
     average_cost,
@@ -60,7 +60,7 @@ class PendingEmail(BaseModel):
 
 
 @router.get("/stats", response_model=EmailStats)
-async def get_first_email_stats():
+async def get_first_email_stats(user: User = Depends(authenticate)):
     pending = await Lead.filter(first_email__isnull=True).count()
     generated = await FirstEmail.all().count()
     avg_cost, sample_size = await average_cost(DEFAULT_MODEL)
@@ -76,7 +76,7 @@ async def get_first_email_stats():
 
 
 @router.post("/generate", response_model=GenerateResult)
-async def generate_first_emails(payload: GenerateRequest):
+async def generate_first_emails(payload: GenerateRequest, user: User = Depends(authenticate)):
     pending_count = await Lead.filter(first_email__isnull=True).count()
     if pending_count == 0:
         return GenerateResult(
@@ -121,7 +121,7 @@ async def generate_first_emails(payload: GenerateRequest):
 
 
 @router.get("/next", response_model=PendingEmail | dict)
-async def get_next_email_for_human_review():
+async def get_next_email_for_human_review(user: User = Depends(authenticate)):
     email = (
         await FirstEmail.filter(
             Q(approval_record__human_reviewed=False) | Q(approval_record=None)
@@ -138,9 +138,9 @@ async def get_next_email_for_human_review():
     approval = getattr(email, "approval_record", None)
 
     return PendingEmail(
-        id=email.id,
-        first_email=email.first_email,
-        created_at=email.created_at.isoformat() if email.created_at else None,
+        id=email.id, #type: ignore
+        first_email=email.first_email, #type: ignore
+        created_at=email.created_at.isoformat() if email.created_at else None, #type: ignore
         lead_name=f"{lead.first_name} {lead.last_name}".strip() if lead else None,
         lead_first_name=lead.first_name if lead else None,
         lead_last_name=lead.last_name if lead else None,
@@ -159,7 +159,7 @@ class DecisionRequest(BaseModel):
 
 
 @router.post("/decision", response_model=dict)
-async def set_human_decision(payload: DecisionRequest):
+async def set_human_decision(payload: DecisionRequest, user: User = Depends(authenticate)):
     if payload.decision not in {"approved", "rejected"}:
         raise HTTPException(status_code=400, detail="decision must be approved or rejected")
 
@@ -176,9 +176,9 @@ async def set_human_decision(payload: DecisionRequest):
             human_reviewed=True,
         )
     else:
-        approval.human_approval = payload.decision == "approved"
-        approval.overall_approval = payload.decision == "approved"
-        approval.human_reviewed = True
+        approval.human_approval = payload.decision == "approved" #type: ignore
+        approval.overall_approval = payload.decision == "approved" #type: ignore
+        approval.human_reviewed = True #type: ignore
         await approval.save()
 
     return {"status": "ok", "id": email.id, "decision": payload.decision}
