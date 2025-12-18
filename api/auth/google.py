@@ -63,16 +63,26 @@ async def verify_google_token_db(token: str):
         req = _get_google_request()
         decoded = id_token.verify_oauth2_token(token, req, Config.GOOGLE_AUDIENCE)
         email = decoded.get("email")
+        if getattr(Config, "DEBUG_AUTH", False):
+            print(f"[auth] decoded token email={email!r} aud={decoded.get('aud')} iss={decoded.get('iss')}")
 
         if not email:
             return None
 
-        # Lookup or auto-provision user
+        # Lookup existing user only; reject unknown accounts
         user = await User.get_or_none(email=email)
+        if getattr(Config, "DEBUG_AUTH", False):
+            if user:
+                print(f"[auth] user found id={user.id} disabled={user.disabled}")
+            else:
+                print(f"[auth] user not found for email={email}")
         if not user:
-            # Reject unknown users; only pre-created accounts may sign in
             return None
 
+        if user.disabled:
+            if getattr(Config, "DEBUG_AUTH", False):
+                print(f"[auth] user disabled email={email}")
+            return None
         return user
 
     except Exception as e:
