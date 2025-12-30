@@ -11,6 +11,8 @@ class CloudConfig(BaseConfig):
     GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE")
     SERVER_URL = os.getenv("SERVER_URL")
     DEBUG_AUTH = os.getenv("DEBUG_AUTH", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
+    OFFLINE_MODE = os.getenv("OFFLINE_MODE", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
+    OFFLINE_ADMIN_EMAIL = os.getenv("OFFLINE_ADMIN_EMAIL", "devadmin@example.com")
 
     TORTOISE_ORM = {
         "connections": {

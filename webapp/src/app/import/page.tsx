@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { storage } from "../../lib/storage";
 import AppShell from "../../components/AppShell";
@@ -15,20 +15,9 @@ export default function ImportPage() {
   const [busy, setBusy] = useState(false);
   const responseRef = useRef<HTMLPreElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [tokenOk, setTokenOk] = useState<boolean>(false);
-
-  useEffect(() => {
-    const token = storage.getToken();
-    setTokenOk(Boolean(token));
-  }, []);
 
   const handleUpload = async () => {
     const token = storage.getToken();
-    if (!token) {
-      setStatus("Please sign in again.");
-      window.location.href = "/";
-      return;
-    }
 
     const file = fileRef.current?.files?.[0];
     if (!file) {
@@ -43,13 +32,18 @@ export default function ImportPage() {
       const form = new FormData();
       form.append("file", file);
 
+      const headers = token ? { Authorization: "Bearer " + token } : {};
       const res = await fetch(apiBase.replace(/\/$/, "") + "/leads/import", {
         method: "POST",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
+        headers,
         body: form,
       });
+
+      if (res.status === 401) {
+        setStatus("Unauthorized. Please sign in again.");
+        window.location.href = "/";
+        return;
+      }
 
       const data = await res.json().catch(() => ({}));
       if (responseRef.current) {
@@ -83,7 +77,7 @@ export default function ImportPage() {
             </label>
 
             <button
-              disabled={!tokenOk || busy}
+              disabled={busy}
               onClick={handleUpload}
               className="btn rounded-lg bg-copper-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-copper-400 disabled:bg-slate-700 disabled:text-slate-300"
             >

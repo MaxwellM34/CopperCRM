@@ -43,16 +43,11 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
   useEffect(() => {
     (async () => {
       const token = storage.getToken();
-      if (!token) {
-        window.location.href = "/";
-        return;
-      }
 
       const apiBase = storage.getApiBaseUrl().replace(/\/$/, "");
       try {
-        const res = await fetch(`${apiBase}/auth/me`, {
-          headers: { Authorization: "Bearer " + token },
-        });
+        const headers = token ? { Authorization: "Bearer " + token } : {};
+        const res = await fetch(`${apiBase}/auth/me`, { headers });
         if (!res.ok) throw new Error("unauthorized");
         await res.json();
         setAuthorized(true);

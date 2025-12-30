@@ -34,6 +34,26 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // If auth is disabled on the API, skip the Google flow entirely.
+    (async () => {
+      try {
+        const apiBase = storage.getApiBaseUrl().replace(/\/$/, "");
+        const token = storage.getToken();
+        const headers = token ? { Authorization: "Bearer " + token } : {};
+        const res = await fetch(`${apiBase}/auth/me`, { headers });
+        if (res.ok) {
+          setStatus("Auth bypass enabled. Redirecting...");
+          setTimeout(() => {
+            window.location.href = "/crm";
+          }, 250);
+        }
+      } catch {
+        // ignore and fall back to Google login
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     // Generate a handful of floating bills with varied timing/size
     const items = Array.from({ length: 28 }).map((_, i) => ({
       id: i,
