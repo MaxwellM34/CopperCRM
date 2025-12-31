@@ -1,0 +1,17 @@
+# ========== SECRETS ==========
+.env
+.env.*
+*.env
+
+# ========== PYTHON ==========
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# ========== SERVER-GENERATED FILES ==========
+*.log
+*.csv
+uploader.log
+scripts/ai-leads/leads.csv
+scripts/ai-leads/prompts/archive/

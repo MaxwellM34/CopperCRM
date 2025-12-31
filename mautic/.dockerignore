@@ -1,0 +1,15 @@
+.env
+.env.*
+*.log
+*.csv
+*.db
+*.pyc
+__pycache__/
+.venv/
+venv/
+
+uploads/
+backup/*.sql
+backup/*.tar.gz
+scripts/ai-leads/generated/
+scripts/ai-leads/__pycache__/

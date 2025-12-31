@@ -1,0 +1,54 @@
+services:
+  db:
+    image: mariadb:10.6
+    container_name: mautic-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  mautic:
+    image: ${MAUTIC_IMAGE:-mautic/mautic:5.0.3-apache}
+    container_name: mautic-app
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "80:80"
+    environment:
+      MAUTIC_DB_HOST: ${MAUTIC_DB_HOST}
+      MAUTIC_DB_PORT: ${MAUTIC_DB_PORT}
+      MAUTIC_DB_DATABASE: ${MAUTIC_DB_DATABASE}
+      MAUTIC_DB_USER: ${MAUTIC_DB_USER}
+      MAUTIC_DB_PASSWORD: ${MAUTIC_DB_PASSWORD}
+
+      MAUTIC_RUN_CRON_JOBS: ${MAUTIC_RUN_CRON_JOBS}
+      MAUTIC_INSTALLER: ${MAUTIC_INSTALLER}
+
+      PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT}
+      TZ: ${TZ}
+
+      # API + AI scripts
+      MAUTIC_BASE_URL: ${MAUTIC_BASE_URL}
+      MAUTIC_USERNAME: ${MAUTIC_USERNAME}
+      MAUTIC_PASSWORD: ${MAUTIC_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+    volumes:
+      - mautic_data:/var/www/html
+
+      # Your custom folders
+      - ./scripts:/opt/mautic/scripts
+      - ./cron:/opt/mautic/cron
+      - ./backup:/opt/mautic/backup
+      - ./uploads:/opt/mautic/uploads
+
+volumes:
+  db_data:
+  mautic_data:

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+PYTHON=${PYTHON:-python}
+
+echo "Archiving current prompts (pre-commit)..."
+$PYTHON "$REPO_ROOT/scripts/ai-leads/archive_prompt.py"
+$PYTHON "$REPO_ROOT/scripts/ai-leads/archive_editor_rules.py"
+$PYTHON "$REPO_ROOT/scripts/ai-leads/archive_scoring.py"
+
+echo "Done."
+exit 0

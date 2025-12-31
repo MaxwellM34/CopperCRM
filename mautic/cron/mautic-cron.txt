@@ -1,0 +1,25 @@
+# ===============================
+# Mautic Cron Jobs (Version Controlled)
+# ===============================
+
+# Update segments every minute
+* * * * * docker exec mautic-app php /var/www/html/bin/console mautic:segments:update
+
+# Update campaigns every minute
+* * * * * docker exec mautic-app php /var/www/html/bin/console mautic:campaigns:update
+
+# Trigger campaign events every minute
+* * * * * docker exec mautic-app php /var/www/html/bin/console mautic:campaigns:trigger
+
+# Send pending emails every minute via sender rotator (5/run, 300/day total)
+* * * * * /srv/mautic/scripts/rotate_senders.sh >> /var/log/mautic_rotator.log 2>&1
+
+# Fetch incoming mail (bounce / replies / unsubscribes)
+# Sends output to /dev/null so it doesn't fill logs
+* * * * * docker exec mautic-app php /var/www/html/bin/console mautic:email:fetch --message-limit=20 --env=prod >/dev/null 2>&1
+
+# Daily Mautic backup at 8 AM
+0 8 * * * /srv/backup/backup_mautic.sh >/var/log/mautic_backup.log 2>&1
+
+# Lead cleanup script (runs every minute; adjust if you want it less frequent)
+* * * * * /srv/mautic/scripts/sql/run_lead_cleanup.sh >> /var/log/mautic_lead_cleanup_cron.log 2>&1
