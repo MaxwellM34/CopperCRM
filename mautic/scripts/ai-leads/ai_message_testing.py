@@ -23,10 +23,7 @@ if ANALYZER_DIR.exists() and str(ANALYZER_DIR) not in sys.path:
 # -----------------------
 
 # Get key from environment for safety
-OPENAI_API_KEY = os.getenv(
-    "OPENAI_API_KEY",
-    "REDACTED_OPENAI_KEY",
-)  # set this in your env/.env
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # set this in your env/.env
 OPENAI_MODEL = "gpt-4.1-mini"   # or gpt-5.1-mini
 
 PROMPT_FILE = "prompts/first_email_prompt.txt"
