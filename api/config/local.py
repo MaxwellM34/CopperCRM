@@ -23,6 +23,7 @@ class LocalConfig(BaseConfig):
         "connections": {"default": DB_URL},
         "apps": {
             "models": {
+                # Keep to in-repo modules; "app.*" doesn't exist and breaks discovery.
                 "models": ["models", "aerich.models"],
                 "default_connection": "default",
             }

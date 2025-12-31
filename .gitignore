@@ -14,9 +14,11 @@ wheels/
 
 # Virtual environments
 .venv
+.vscode
 
 # .json
 openai_tools.json
+
 
 # Node/Next artifacts
 webapp/node_modules/
