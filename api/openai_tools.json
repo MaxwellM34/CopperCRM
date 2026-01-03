@@ -1058,6 +1058,28 @@
             ],
             "title": "Llm Profile Name"
           },
+          "llm_overlay_profile_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Overlay Profile Id"
+          },
+          "llm_overlay_profile_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Overlay Profile Name"
+          },
           "created_at": {
             "anyOf": [
               {
@@ -1203,6 +1225,17 @@
               }
             ],
             "title": "Llm Profile Id"
+          },
+          "llm_overlay_profile_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Overlay Profile Id"
           },
           "steps": {
             "items": {
@@ -1506,6 +1539,28 @@
             ],
             "title": "Llm Profile Name"
           },
+          "llm_overlay_profile_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Overlay Profile Id"
+          },
+          "llm_overlay_profile_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Overlay Profile Name"
+          },
           "created_at": {
             "anyOf": [
               {
@@ -1623,6 +1678,18 @@
             ],
             "title": "Count",
             "description": "How many leads to generate emails for (omit to use all pending)."
+          },
+          "campaign_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaign Id",
+            "description": "Optional campaign to select LLM profiles for generation."
           }
         },
         "type": "object",

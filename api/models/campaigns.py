@@ -33,6 +33,12 @@ class Campaign(models.Model):
         null=True,
         on_delete=fields.SET_NULL,
     )
+    llm_overlay_profile = fields.ForeignKeyField(
+        "models.LLMProfile",
+        related_name="overlay_campaigns",
+        null=True,
+        on_delete=fields.SET_NULL,
+    )
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
     created_by = fields.ForeignKeyField(

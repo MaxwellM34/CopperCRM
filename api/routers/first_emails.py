@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from tortoise.expressions import Q
 from auth.authenticate import authenticate
-from models import FirstEmail, FirstEmailApproval, Lead, User
+from models import Campaign, FirstEmail, FirstEmailApproval, Lead, User
 from services.email_generation import (
     DEFAULT_MODEL,
     average_cost,
@@ -32,6 +32,10 @@ class GenerateRequest(BaseModel):
         ge=1,
         le=500,
         description="How many leads to generate emails for (omit to use all pending).",
+    )
+    campaign_id: Optional[int] = Field(
+        None,
+        description="Optional campaign to select LLM profiles for generation.",
     )
 
 
@@ -77,6 +81,16 @@ async def get_first_email_stats(user: User = Depends(authenticate)):
 
 @router.post("/generate", response_model=GenerateResult)
 async def generate_first_emails(payload: GenerateRequest, user: User = Depends(authenticate)):
+    campaign = None
+    if payload.campaign_id is not None:
+        campaign = (
+            await Campaign.filter(id=payload.campaign_id)
+            .prefetch_related("llm_profile", "llm_overlay_profile")
+            .first()
+        )
+        if campaign is None:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+
     pending_count = await Lead.filter(first_email__isnull=True).count()
     if pending_count == 0:
         return GenerateResult(
@@ -99,7 +113,14 @@ async def generate_first_emails(payload: GenerateRequest, user: User = Depends(a
 
     for lead in leads:
         try:
-            record, cost = await generate_and_store_email(lead, None, client, DEFAULT_MODEL)
+            record, cost = await generate_and_store_email(
+                lead,
+                None,
+                client,
+                DEFAULT_MODEL,
+                base_profile=getattr(campaign, "llm_profile", None) if campaign else None,
+                overlay_profile=getattr(campaign, "llm_overlay_profile", None) if campaign else None,
+            )
             generated += 1 if record else 0
             if cost is not None:
                 total_cost += cost

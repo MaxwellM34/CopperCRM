@@ -119,10 +119,10 @@ def build_chat_messages(
         "Kraken Sense\n\n"
         "Rules:\n"
         "- No hyphens or em dashes. No emojis, fluff, or jargon.\n"
-        "- Reference the person’s role, responsibilities, org context, and any recent (real) news if naturally helpful.\n"
+        "- Reference the person's role, responsibilities, org context, and any recent (real) news if naturally helpful.\n"
         "- Mention value: faster pathogen detection, reduced lab dependency, easier compliance reporting, early outbreak detection, operational reliability.\n"
-        "- Ask briefly for a call or chat if they’re interested.\n"
-        "- If natural, note it’s revolutionary for pathogen testing.\n"
+        "- Ask briefly for a call or chat if they are interested.\n"
+        "- If natural, note it is revolutionary for pathogen testing.\n"
         "- Keep it concise, human, respectful of their time.\n\n"
         f"Lead & company context:\n{context}\n"
     )
@@ -261,10 +261,12 @@ async def generate_and_store_email(
     user: User | None,
     client: AsyncOpenAI,
     model: str = DEFAULT_MODEL,
+    base_profile: LLMProfile | None = None,
+    overlay_profile: LLMProfile | None = None,
 ) -> tuple[FirstEmail, Decimal | None]:
-    base_profile = await _get_default_profile("general")
-    cold_overlay = await _get_default_profile("cold_outbound")
-    messages = build_chat_messages(lead, base_profile, cold_overlay)
+    base_profile = base_profile or await _get_default_profile("general")
+    overlay_profile = overlay_profile or await _get_default_profile("cold_outbound")
+    messages = build_chat_messages(lead, base_profile, overlay_profile)
     completion = await client.chat.completions.create(
         model=model,
         messages=messages,
@@ -285,7 +287,7 @@ async def generate_and_store_email(
         cost = estimate_cost_from_tokens(model, prompt_tokens, completion_tokens)
 
     base_version = _profile_version(base_profile)
-    overlay_version = _profile_version(cold_overlay)
+    overlay_version = _profile_version(overlay_profile)
 
     record = await FirstEmail.create(
         lead=lead,
@@ -302,8 +304,8 @@ async def generate_and_store_email(
         llm_profile_name=base_profile.name if base_profile else None,
         llm_profile_rules=base_profile.rules if base_profile else None,
         llm_overlay_profile_version=overlay_version,
-        llm_overlay_profile_name=cold_overlay.name if cold_overlay else None,
-        llm_overlay_profile_rules=cold_overlay.rules if cold_overlay else None,
+        llm_overlay_profile_name=overlay_profile.name if overlay_profile else None,
+        llm_overlay_profile_rules=overlay_profile.rules if overlay_profile else None,
     )
     return record, cost
 

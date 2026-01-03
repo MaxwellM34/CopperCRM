@@ -236,6 +236,7 @@ class CampaignPayload(BaseModel):
     ai_brief: str | None = None
     launch_notes: str | None = None
     llm_profile_id: int | None = None
+    llm_overlay_profile_id: int | None = None
     steps: list[CampaignStepPayload] = Field(default_factory=list)
 
 
@@ -264,6 +265,8 @@ class CampaignSummary(BaseModel):
     launched_at: str | None
     llm_profile_id: int | None = None
     llm_profile_name: str | None = None
+    llm_overlay_profile_id: int | None = None
+    llm_overlay_profile_name: str | None = None
     created_at: str | None
     updated_at: str | None
     step_count: int = 0
@@ -333,15 +336,21 @@ async def _ensure_default_cold_outbound_profile() -> LLMProfile:
 
 async def _seed_default_campaign(user: User) -> Campaign:
     default_profile = await _ensure_default_llm_profile(user)
-    await _ensure_default_cold_outbound_profile()
+    overlay_profile = await _ensure_default_cold_outbound_profile()
     existing = (
         await Campaign.filter(preset_key=DRIP_PRESET["key"])
-        .prefetch_related("steps", "llm_profile")
+        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if existing:
+        needs_save = False
         if existing.llm_profile is None:
             existing.llm_profile = default_profile  # type: ignore[assignment]
+            needs_save = True
+        if existing.llm_overlay_profile is None and existing.category == "cold_outbound":
+            existing.llm_overlay_profile = overlay_profile  # type: ignore[assignment]
+            needs_save = True
+        if needs_save:
             await existing.save()
         return existing
 
@@ -357,6 +366,7 @@ async def _seed_default_campaign(user: User) -> Campaign:
         created_by=user,
         updated_by=user,
         llm_profile=default_profile,
+        llm_overlay_profile=overlay_profile,
     )
 
     for idx, step in enumerate(DRIP_PRESET["steps"], start=1):
@@ -374,7 +384,7 @@ async def _seed_default_campaign(user: User) -> Campaign:
 
     created = (
         await Campaign.filter(id=campaign.id)
-        .prefetch_related("steps", "llm_profile")
+        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
         .first()
     )
     return created or campaign
@@ -402,6 +412,7 @@ def _serialize_campaign(
     step_count: int | None = None,
 ) -> CampaignDetail | CampaignSummary:
     llm_profile = getattr(campaign, "llm_profile", None)
+    llm_overlay_profile = getattr(campaign, "llm_overlay_profile", None)
     base_kwargs: dict[str, Any] = dict(
         id=campaign.id,
         name=campaign.name,
@@ -416,6 +427,8 @@ def _serialize_campaign(
         launched_at=_iso_or_none(getattr(campaign, "launched_at", None)),
         llm_profile_id=llm_profile.id if llm_profile else None,
         llm_profile_name=llm_profile.name if llm_profile else None,
+        llm_overlay_profile_id=llm_overlay_profile.id if llm_overlay_profile else None,
+        llm_overlay_profile_name=llm_overlay_profile.name if llm_overlay_profile else None,
         created_at=_iso_or_none(getattr(campaign, "created_at", None)),
         updated_at=_iso_or_none(getattr(campaign, "updated_at", None)),
         step_count=step_count if step_count is not None else 0,
@@ -434,12 +447,26 @@ def _serialize_campaign(
     return CampaignSummary(**base_kwargs)
 
 
-async def _resolve_llm_profile(profile_id: int | None, user: User) -> LLMProfile:
+async def _resolve_profile(
+    profile_id: int | None,
+    category: str,
+    user: User,
+) -> LLMProfile | None:
     if profile_id is None:
-        return await _ensure_default_llm_profile(user)
+        if category == "general":
+            return await _ensure_default_llm_profile(user)
+        if category == "cold_outbound":
+            return await _ensure_default_cold_outbound_profile()
+        return None
+
     profile = await LLMProfile.filter(id=profile_id).first()
     if profile is None:
         raise HTTPException(status_code=404, detail="LLM profile not found")
+    if profile.category != category:
+        raise HTTPException(
+            status_code=400,
+            detail=f"LLM profile category mismatch (expected {category})",
+        )
     return profile
 
 
@@ -448,7 +475,7 @@ async def list_campaigns(user: User = Depends(authenticate)):
     await _seed_default_campaign(user)
     campaigns = (
         await Campaign.all()
-        .prefetch_related("steps", "llm_profile")
+        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
         .order_by("-updated_at", "-id")
     )
     summaries: list[CampaignSummary] = []
@@ -511,7 +538,7 @@ async def create_llm_profile(payload: LLMProfilePayload, user: User = Depends(au
         is_default=is_default,
     )
     if is_default:
-        await LLMProfile.filter(id__not=profile.id).update(is_default=False)
+        await LLMProfile.filter(id__not=profile.id, category=profile.category).update(is_default=False)
 
     return LLMProfileResponse(
         id=profile.id,  # type: ignore[arg-type]
@@ -540,10 +567,13 @@ async def update_llm_profile(profile_id: int, payload: LLMProfilePayload, user: 
     await profile.save()
 
     if profile.is_default:
-        await LLMProfile.filter(id__not=profile.id).update(is_default=False)
+        await LLMProfile.filter(id__not=profile.id, category=profile.category).update(is_default=False)
     else:
-        # Ensure at least one default exists
-        await _ensure_default_llm_profile(user)
+        # Ensure at least one default exists for the category
+        if profile.category == "cold_outbound":
+            await _ensure_default_cold_outbound_profile()
+        else:
+            await _ensure_default_llm_profile(user)
 
     return LLMProfileResponse(
         id=profile.id,  # type: ignore[arg-type]
@@ -563,7 +593,14 @@ async def create_campaign(payload: CampaignPayload, user: User = Depends(authent
     if not steps_payload and payload.preset_key == DRIP_PRESET["key"]:
         steps_payload = [CampaignStepPayload(**step) for step in DRIP_PRESET["steps"]]
 
-    llm_profile = await _resolve_llm_profile(payload.llm_profile_id, user)
+    llm_profile = await _resolve_profile(payload.llm_profile_id, "general", user)
+    llm_overlay_profile = None
+    if payload.llm_overlay_profile_id is not None:
+        llm_overlay_profile = await _resolve_profile(
+            payload.llm_overlay_profile_id, "cold_outbound", user
+        )
+    elif payload.category == "cold_outbound":
+        llm_overlay_profile = await _ensure_default_cold_outbound_profile()
 
     campaign = await Campaign.create(
         name=payload.name,
@@ -578,6 +615,7 @@ async def create_campaign(payload: CampaignPayload, user: User = Depends(authent
         created_by=user,
         updated_by=user,
         llm_profile=llm_profile,
+        llm_overlay_profile=llm_overlay_profile,
     )
 
     for idx, step in enumerate(steps_payload, start=1):
@@ -595,7 +633,7 @@ async def create_campaign(payload: CampaignPayload, user: User = Depends(authent
 
     created = (
         await Campaign.filter(id=campaign.id)
-        .prefetch_related("steps", "llm_profile")
+        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if created is None:
@@ -609,7 +647,7 @@ async def get_campaign(campaign_id: int, user: User = Depends(authenticate)):
     await _seed_default_campaign(user)
     campaign = (
         await Campaign.filter(id=campaign_id)
-        .prefetch_related("steps", "llm_profile")
+        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if campaign is None:
@@ -624,13 +662,20 @@ async def update_campaign(
 ):
     campaign = (
         await Campaign.filter(id=campaign_id)
-        .prefetch_related("steps", "llm_profile")
+        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if campaign is None:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
-    llm_profile = await _resolve_llm_profile(payload.llm_profile_id, user)
+    llm_profile = await _resolve_profile(payload.llm_profile_id, "general", user)
+    llm_overlay_profile = None
+    if payload.llm_overlay_profile_id is not None:
+        llm_overlay_profile = await _resolve_profile(
+            payload.llm_overlay_profile_id, "cold_outbound", user
+        )
+    elif payload.category == "cold_outbound":
+        llm_overlay_profile = await _ensure_default_cold_outbound_profile()
 
     campaign.name = payload.name  # type: ignore[assignment]
     campaign.description = payload.description  # type: ignore[assignment]
@@ -642,6 +687,7 @@ async def update_campaign(
     campaign.ai_brief = payload.ai_brief  # type: ignore[assignment]
     campaign.launch_notes = payload.launch_notes  # type: ignore[assignment]
     campaign.llm_profile = llm_profile  # type: ignore[assignment]
+    campaign.llm_overlay_profile = llm_overlay_profile  # type: ignore[assignment]
     campaign.updated_by = user  # type: ignore[assignment]
     await campaign.save()
 
@@ -662,7 +708,7 @@ async def update_campaign(
 
     updated = (
         await Campaign.filter(id=campaign.id)
-        .prefetch_related("steps", "llm_profile")
+        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if updated is None:
@@ -677,7 +723,7 @@ async def launch_campaign(
 ):
     campaign = (
         await Campaign.filter(id=campaign_id)
-        .prefetch_related("steps", "llm_profile")
+        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if campaign is None:
