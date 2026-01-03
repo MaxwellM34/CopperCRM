@@ -18,6 +18,7 @@ wheels/
 
 # .json
 openai_tools.json
+settings.json
 
 
 # Node/Next artifacts
@@ -31,3 +32,4 @@ webapp/dist/
 webapp/build/
 npm-debug.log*
 yarn-error.log*
+
