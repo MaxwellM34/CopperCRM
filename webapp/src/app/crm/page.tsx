@@ -36,10 +36,10 @@ const tiles = [
     cta: "Open reports",
   },
   {
-    title: "Build & Deploy Pipeline",
-    desc: "CI/CD automation for the CRM. Coming soon.",
-    href: "#",
-    soon: true,
+    title: "Campaigns",
+    desc: "Orchestrate inbound and cold outbound journeys with AI handling replies.",
+    href: "/campaigns",
+    cta: "Open campaigns",
   },
 ];
 

@@ -23,9 +23,10 @@ const navItems: NavItem[] = [
   { label: "Home", href: "/crm", icon: "🏠" },
   { label: "Import CSVs", href: "/import", icon: "📥" },
   { label: "Email Generator", href: "/emails", icon: "✉️" },
-  { label: "Leads", href: "/leads", icon: "🧑‍💼" },
+  { label: "Leads", href: "/leads", icon: "🧑" },
+  { label: "Campaigns", href: "/campaigns", icon: "🚀" },
+  { label: "LLM Knowledge", href: "/campaigns/llm-knowledge", icon: "📚" },
   { label: "Accounts", href: "#", icon: "🏢", soon: true },
-  { label: "Build & Deploy", href: "#", icon: "🚀", soon: true },
   { label: "Reports", href: "/reports", icon: "📊" },
 ];
 
@@ -101,7 +102,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
 
         <div className="sidebar__footer">
           <button className="sidebar__signout" onClick={handleSignOut}>
-            <span className="icon">↩</span>
+            <span className="icon">🚪</span>
             {expanded && <span className="label">Sign out</span>}
           </button>
         </div>
