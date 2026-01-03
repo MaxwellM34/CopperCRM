@@ -6,6 +6,7 @@ class LLMProfile(models.Model):
     name = fields.CharField(max_length=255, unique=True)
     description = fields.TextField(null=True)
     rules = fields.TextField()
+    category = fields.CharField(max_length=50, default="general")
     is_default = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)

@@ -10,14 +10,14 @@ from typing import Iterable, Sequence
 from fastapi import HTTPException
 from openai import AsyncOpenAI
 
-from models import Company, FirstEmail, Lead, User
+from models import Company, FirstEmail, Lead, User, LLMProfile
 
 DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 DEFAULT_PROMPT_TOKENS = 360
 DEFAULT_COMPLETION_TOKENS = 240
 
 MODEL_PRICING: dict[str, dict[str, Decimal]] = {
-    # Prices per 1K tokens (USD) — adjust if you change models
+    # Prices per 1K tokens (USD) - adjust if you change models
     "gpt-4o-mini": {"input": Decimal("0.00015"), "output": Decimal("0.0006")},
     "gpt-4o": {"input": Decimal("0.0025"), "output": Decimal("0.005")},
 }
@@ -46,7 +46,7 @@ def _sanitize(value: str | None, max_length: int = 500) -> str:
         return ""
     value = value.strip()
     if len(value) > max_length:
-        return value[: max_length - 1] + "…"
+        return value[: max_length - 3] + "..."
     return value
 
 
@@ -68,31 +68,63 @@ def build_lead_context(lead: Lead) -> str:
         lines.append(f"Industries: {lead.industries}")
     if company:
         lines.append(f"Company: {company.company_name}")
+        if company.company_city:
+            lines.append(f"Location: {company.company_city}")
         if company.technologies:
             lines.append(f"Stack: {company.technologies}")
         if company.employees_amount:
             lines.append(f"Size: {company.employees_amount}")
+        if company.latest_funding:
+            lines.append(f"Latest funding: {company.latest_funding}")
     if lead.profile_summary:
         lines.append(f"Summary: {_sanitize(lead.profile_summary, 350)}")
     return "\n".join(lines)
 
 
-def build_chat_messages(lead: Lead) -> list[dict[str, str]]:
+def _profile_version(profile: LLMProfile | None) -> str | None:
+    if not profile:
+        return None
+    ts = getattr(profile, "updated_at", None)
+    if ts and hasattr(ts, "isoformat"):
+        return ts.isoformat()
+    return "v1"
+
+
+def build_chat_messages(
+    lead: Lead,
+    base_profile: LLMProfile | None,
+    cold_overlay: LLMProfile | None,
+) -> list[dict[str, str]]:
     context = build_lead_context(lead)
+    base_rules = base_profile.rules if base_profile else ""
+    overlay_rules = cold_overlay.rules if cold_overlay else ""
+
     system = (
-        "You are an SDR who writes concise, respectful first-touch cold emails. "
-        "Personalize each email using the provided lead and company context. "
-        "Keep the body under 140 words, avoid exaggeration, and end with a single, low-friction CTA."
+        "You are an SDR for Kraken Sense writing ultra-personalized, first-touch cold emails. "
+        "Stacked guidance:\n"
+        f"- Base rules: {base_rules}\n"
+        f"- Cold outbound overlay: {overlay_rules}\n"
+        "Always personalize to the exact person using lead/company fields provided. "
+        "If you have browsing, do a quick scan for recent company/person news (last 90 days); "
+        "if not, stay anchored to provided context. Never invent facts."
     )
+
     user = (
-        "Write an outbound email (subject + body) for this lead. "
-        "Use plain text (no HTML) and avoid placeholders. "
-        "Ensure the copy feels human and specific to the lead.\n\n"
-        f"Lead & company context:\n{context}\n\n"
-        "Format:\n"
-        "Subject: <compelling subject line>\n"
-        "Body:\n"
-        "<2-4 short paragraphs with a single CTA>\n"
+        "Write a 2-3 sentence cold email with NO subject line. "
+        "Format strictly:\n"
+        "Greeting\n"
+        "<2-3 short sentences>\n"
+        "Copper\n"
+        "Sales Development Representative\n"
+        "Kraken Sense\n\n"
+        "Rules:\n"
+        "- No hyphens or em dashes. No emojis, fluff, or jargon.\n"
+        "- Reference the person’s role, responsibilities, org context, and any recent (real) news if naturally helpful.\n"
+        "- Mention value: faster pathogen detection, reduced lab dependency, easier compliance reporting, early outbreak detection, operational reliability.\n"
+        "- Ask briefly for a call or chat if they’re interested.\n"
+        "- If natural, note it’s revolutionary for pathogen testing.\n"
+        "- Keep it concise, human, respectful of their time.\n\n"
+        f"Lead & company context:\n{context}\n"
     )
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
@@ -182,13 +214,57 @@ def get_openai_client() -> AsyncOpenAI:
     return AsyncOpenAI(api_key=api_key, base_url=base_url)
 
 
+async def _get_default_profile(category: str) -> LLMProfile | None:
+    profile = (
+        await LLMProfile.filter(category=category)
+        .order_by("-is_default", "-updated_at")
+        .first()
+    )
+    if profile:
+        return profile
+
+    # Fallback seeding if campaign seeding has not run yet.
+    seeds = {
+        "general": {
+            "name": "Base LLM Rules",
+            "description": "Default outreach rules",
+            "rules": (
+                "Keep emails concise, friendly, and specific to the lead. Do not fabricate facts. Respect opt-outs. "
+                "Offer two time windows when proposing meetings. Keep cold emails <= 120 words."
+            ),
+        },
+        "cold_outbound": {
+            "name": "Cold Outbound Overlay",
+            "description": "Extra rules for cold outbound personalization layered on top of the base profile.",
+            "rules": (
+                "2-3 sentences, no subject line, greeting + body + Copper / Sales Development Representative / Kraken Sense signoff. "
+                "No hyphens or em dashes. No fluff or emojis. Personalize using role/org context and recent news if available. "
+                "Highlight pathogen detection value, reduced lab dependency, compliance, early detection, reliability. Brief CTA."
+            ),
+        },
+    }
+    seed = seeds.get(category)
+    if not seed:
+        return None
+    created = await LLMProfile.create(
+        name=seed["name"],
+        description=seed.get("description"),
+        rules=seed["rules"],
+        category=category,
+        is_default=True,
+    )
+    return created
+
+
 async def generate_and_store_email(
     lead: Lead,
     user: User | None,
     client: AsyncOpenAI,
     model: str = DEFAULT_MODEL,
 ) -> tuple[FirstEmail, Decimal | None]:
-    messages = build_chat_messages(lead)
+    base_profile = await _get_default_profile("general")
+    cold_overlay = await _get_default_profile("cold_outbound")
+    messages = build_chat_messages(lead, base_profile, cold_overlay)
     completion = await client.chat.completions.create(
         model=model,
         messages=messages,
@@ -208,6 +284,9 @@ async def generate_and_store_email(
     if prompt_tokens or completion_tokens:
         cost = estimate_cost_from_tokens(model, prompt_tokens, completion_tokens)
 
+    base_version = _profile_version(base_profile)
+    overlay_version = _profile_version(cold_overlay)
+
     record = await FirstEmail.create(
         lead=lead,
         first_email=email_text,
@@ -219,6 +298,12 @@ async def generate_and_store_email(
         cost_usd=cost,
         created_by=user,
         updated_by=user,
+        llm_profile_version=base_version,
+        llm_profile_name=base_profile.name if base_profile else None,
+        llm_profile_rules=base_profile.rules if base_profile else None,
+        llm_overlay_profile_version=overlay_version,
+        llm_overlay_profile_name=cold_overlay.name if cold_overlay else None,
+        llm_overlay_profile_rules=cold_overlay.rules if cold_overlay else None,
     )
     return record, cost
 

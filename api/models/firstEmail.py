@@ -35,6 +35,12 @@ class FirstEmail(models.Model):
     pre_editor = fields.TextField(null=True)
     post_editor = fields.TextField(null=True)
     edited_by = fields.CharField(max_length=255, null=True)
+    llm_profile_version = fields.CharField(max_length=100, null=True)
+    llm_profile_name = fields.CharField(max_length=255, null=True)
+    llm_profile_rules = fields.TextField(null=True)
+    llm_overlay_profile_version = fields.CharField(max_length=100, null=True)
+    llm_overlay_profile_name = fields.CharField(max_length=255, null=True)
+    llm_overlay_profile_rules = fields.TextField(null=True)
 
     class Meta:  # type: ignore
         table = "first_email"

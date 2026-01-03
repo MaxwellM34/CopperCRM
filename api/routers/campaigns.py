@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -19,6 +19,21 @@ BASE_LLM_PROFILE = {
         "stop immediately. Offer meetings with 2 time windows when appropriate. Avoid jargon, keep to 120 words max "
         "for cold emails, and answer questions directly before re-proposing a call if interest is detected."
     ),
+    "category": "general",
+}
+
+COLD_OUTBOUND_OVERLAY_PROFILE = {
+    "name": "Cold Outbound Overlay",
+    "description": "Extra rules for cold outbound personalization layered on top of the base profile.",
+    "rules": (
+        "Write short (2-3 sentence) cold emails with no subject line. Start with a greeting, end with the exact signoff "
+        "lines: 'Copper' on one line, 'Sales Development Representative' on the next, 'Kraken Sense' on the next. "
+        "No hyphens or em dashes. Avoid fluff, jargon, emojis. Personalize using role, org context, and any recent "
+        "news if available; otherwise stick to provided data. Mention benefits: faster pathogen detection, reduced lab "
+        "dependency, easier compliance reporting, early outbreak detection, operational reliability. Ask briefly for a call/chat. "
+        "If natural, note that the approach is revolutionary for pathogen testing."
+    ),
+    "category": "cold_outbound",
 }
 
 
@@ -184,6 +199,7 @@ class LLMProfilePayload(BaseModel):
     name: str
     rules: str
     description: str | None = None
+    category: str = "general"
     is_default: bool | None = None
 
 
@@ -192,13 +208,13 @@ class LLMProfileResponse(BaseModel):
     name: str
     description: str | None
     rules: str
+    category: str
     is_default: bool
     created_at: str | None = None
     updated_at: str | None = None
 
 
 class CampaignStepPayload(BaseModel):
-    id: int | None = None
     title: str
     step_type: str
     sequence: int = 1
@@ -257,12 +273,23 @@ class CampaignDetail(CampaignSummary):
     steps: list[CampaignStepResponse] = Field(default_factory=list)
 
 
+def _iso_or_none(value: Any) -> str | None:
+    iso: Callable[[], str] | None = getattr(value, "isoformat", None)
+    if callable(iso):
+        return iso()
+    return None
+
+
 async def _ensure_default_llm_profile(user: User) -> LLMProfile:
-    profile = await LLMProfile.filter(is_default=True).first()
+    profile = (
+        await LLMProfile.filter(is_default=True, category="general")
+        .order_by("-updated_at")
+        .first()
+    )
     if profile:
         return profile
 
-    profile = await LLMProfile.filter(name=BASE_LLM_PROFILE["name"]).first()
+    profile = await LLMProfile.filter(name=BASE_LLM_PROFILE["name"], category="general").first()
     if profile:
         profile.is_default = True  # type: ignore[assignment]
         await profile.save()
@@ -272,12 +299,41 @@ async def _ensure_default_llm_profile(user: User) -> LLMProfile:
         name=BASE_LLM_PROFILE["name"],
         description=BASE_LLM_PROFILE["description"],
         rules=BASE_LLM_PROFILE["rules"],
+        category=BASE_LLM_PROFILE["category"],
+        is_default=True,
+    )
+
+
+async def _ensure_default_cold_outbound_profile() -> LLMProfile:
+    profile = (
+        await LLMProfile.filter(is_default=True, category="cold_outbound")
+        .order_by("-updated_at")
+        .first()
+    )
+    if profile:
+        return profile
+
+    existing = await LLMProfile.filter(
+        name=COLD_OUTBOUND_OVERLAY_PROFILE["name"], category="cold_outbound"
+    ).first()
+    if existing:
+        if not existing.is_default:
+            existing.is_default = True  # type: ignore[assignment]
+            await existing.save()
+        return existing
+
+    return await LLMProfile.create(
+        name=COLD_OUTBOUND_OVERLAY_PROFILE["name"],
+        description=COLD_OUTBOUND_OVERLAY_PROFILE["description"],
+        rules=COLD_OUTBOUND_OVERLAY_PROFILE["rules"],
+        category=COLD_OUTBOUND_OVERLAY_PROFILE["category"],
         is_default=True,
     )
 
 
 async def _seed_default_campaign(user: User) -> Campaign:
     default_profile = await _ensure_default_llm_profile(user)
+    await _ensure_default_cold_outbound_profile()
     existing = (
         await Campaign.filter(preset_key=DRIP_PRESET["key"])
         .prefetch_related("steps", "llm_profile")
@@ -335,8 +391,8 @@ def _serialize_step(step: CampaignStep) -> CampaignStepResponse:
         prompt_template=getattr(step, "prompt_template", None),
         position_x=step.position_x,  # type: ignore[arg-type]
         position_y=step.position_y,  # type: ignore[arg-type]
-        created_at=step.created_at.isoformat() if step.created_at else None,  # type: ignore[arg-type]
-        updated_at=step.updated_at.isoformat() if step.updated_at else None,  # type: ignore[arg-type]
+        created_at=_iso_or_none(getattr(step, "created_at", None)),
+        updated_at=_iso_or_none(getattr(step, "updated_at", None)),
     )
 
 
@@ -346,7 +402,7 @@ def _serialize_campaign(
     step_count: int | None = None,
 ) -> CampaignDetail | CampaignSummary:
     llm_profile = getattr(campaign, "llm_profile", None)
-    base_kwargs = dict(
+    base_kwargs: dict[str, Any] = dict(
         id=campaign.id,
         name=campaign.name,
         description=campaign.description,
@@ -357,11 +413,11 @@ def _serialize_campaign(
         entry_point=campaign.entry_point,
         ai_brief=campaign.ai_brief,
         launch_notes=campaign.launch_notes,
-        launched_at=campaign.launched_at.isoformat() if campaign.launched_at else None,
+        launched_at=_iso_or_none(getattr(campaign, "launched_at", None)),
         llm_profile_id=llm_profile.id if llm_profile else None,
         llm_profile_name=llm_profile.name if llm_profile else None,
-        created_at=campaign.created_at.isoformat() if campaign.created_at else None,
-        updated_at=campaign.updated_at.isoformat() if campaign.updated_at else None,
+        created_at=_iso_or_none(getattr(campaign, "created_at", None)),
+        updated_at=_iso_or_none(getattr(campaign, "updated_at", None)),
         step_count=step_count if step_count is not None else 0,
     )
 
@@ -412,6 +468,7 @@ async def get_drip_preset(user: User = Depends(authenticate)):
 @router.get("/llm-profiles", response_model=list[LLMProfileResponse])
 async def list_llm_profiles(user: User = Depends(authenticate)):
     await _ensure_default_llm_profile(user)
+    await _ensure_default_cold_outbound_profile()
     profiles = await LLMProfile.all().order_by("-is_default", "name")
     return [
         LLMProfileResponse(
@@ -419,6 +476,7 @@ async def list_llm_profiles(user: User = Depends(authenticate)):
             name=p.name,  # type: ignore[arg-type]
             description=p.description,  # type: ignore[arg-type]
             rules=p.rules,  # type: ignore[arg-type]
+            category=p.category,  # type: ignore[arg-type]
             is_default=bool(p.is_default),
             created_at=p.created_at.isoformat() if p.created_at else None,  # type: ignore[arg-type]
             updated_at=p.updated_at.isoformat() if p.updated_at else None,  # type: ignore[arg-type]
@@ -435,6 +493,7 @@ async def get_default_llm_profile(user: User = Depends(authenticate)):
         name=profile.name,  # type: ignore[arg-type]
         description=profile.description,  # type: ignore[arg-type]
         rules=profile.rules,  # type: ignore[arg-type]
+        category=profile.category,  # type: ignore[arg-type]
         is_default=bool(profile.is_default),
         created_at=profile.created_at.isoformat() if profile.created_at else None,  # type: ignore[arg-type]
         updated_at=profile.updated_at.isoformat() if profile.updated_at else None,  # type: ignore[arg-type]
@@ -448,6 +507,7 @@ async def create_llm_profile(payload: LLMProfilePayload, user: User = Depends(au
         name=payload.name,
         description=payload.description,
         rules=payload.rules,
+        category=payload.category or "general",
         is_default=is_default,
     )
     if is_default:
@@ -458,6 +518,7 @@ async def create_llm_profile(payload: LLMProfilePayload, user: User = Depends(au
         name=profile.name,  # type: ignore[arg-type]
         description=profile.description,  # type: ignore[arg-type]
         rules=profile.rules,  # type: ignore[arg-type]
+        category=profile.category,  # type: ignore[arg-type]
         is_default=bool(profile.is_default),
         created_at=profile.created_at.isoformat() if profile.created_at else None,  # type: ignore[arg-type]
         updated_at=profile.updated_at.isoformat() if profile.updated_at else None,  # type: ignore[arg-type]
@@ -473,6 +534,7 @@ async def update_llm_profile(profile_id: int, payload: LLMProfilePayload, user: 
     profile.name = payload.name  # type: ignore[assignment]
     profile.description = payload.description  # type: ignore[assignment]
     profile.rules = payload.rules  # type: ignore[assignment]
+    profile.category = payload.category or profile.category  # type: ignore[assignment]
     if payload.is_default is not None:
         profile.is_default = bool(payload.is_default)  # type: ignore[assignment]
     await profile.save()
@@ -488,6 +550,7 @@ async def update_llm_profile(profile_id: int, payload: LLMProfilePayload, user: 
         name=profile.name,  # type: ignore[arg-type]
         description=profile.description,  # type: ignore[arg-type]
         rules=profile.rules,  # type: ignore[arg-type]
+        category=profile.category,  # type: ignore[arg-type]
         is_default=bool(profile.is_default),
         created_at=profile.created_at.isoformat() if profile.created_at else None,  # type: ignore[arg-type]
         updated_at=profile.updated_at.isoformat() if profile.updated_at else None,  # type: ignore[arg-type]
