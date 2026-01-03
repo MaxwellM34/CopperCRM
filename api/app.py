@@ -13,6 +13,7 @@ from routers.imports import router as leads_router
 from routers.users import router as users_router
 from routers.approval_stats import router as approval_stats_router
 from routers.lead_display import router as lead_display_router
+from routers.campaigns import router as campaigns_router
 from services.gender_infer import backfill_lead_genders
 
 
@@ -72,6 +73,7 @@ def create_app() -> FastAPI:
     app.include_router(first_emails_router)
     app.include_router(approval_stats_router)
     app.include_router(lead_display_router)
+    app.include_router(campaigns_router)
 
     init_db(app)
     return app
