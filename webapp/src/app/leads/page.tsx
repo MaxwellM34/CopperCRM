@@ -35,7 +35,7 @@ export default function LeadsPage() {
         const token = storage.getToken();
         const apiBase = storage.getApiBaseUrl().replace(/\/$/, "");
         const res = await fetch(`${apiBase}/leads/display`, {
-          headers: token ? { Authorization: "Bearer " + token } : {},
+          headers: token ? { Authorization: "Bearer " + token } : undefined,
         });
         if (res.status === 401) {
           setError("Unauthorized. Please sign in.");

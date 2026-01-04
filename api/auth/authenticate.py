@@ -19,10 +19,10 @@ async def _get_offline_admin_user() -> User:
 
     needs_save = False
     if not user.is_admin:
-        user.is_admin = True
+        user.is_admin = True  # type: ignore[assignment]
         needs_save = True
     if user.disabled:
-        user.disabled = False
+        user.disabled = False  # type: ignore[assignment]
         needs_save = True
     if needs_save:
         await user.save()

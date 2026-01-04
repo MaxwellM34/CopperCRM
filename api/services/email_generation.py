@@ -5,10 +5,11 @@ import json
 import os
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, cast
 
 from fastapi import HTTPException
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 from models import Company, FirstEmail, Lead, User
 
@@ -72,12 +73,13 @@ def build_lead_context(lead: Lead) -> str:
             lines.append(f"Stack: {company.technologies}")
         if company.employees_amount:
             lines.append(f"Size: {company.employees_amount}")
-    if lead.profile_summary:
-        lines.append(f"Summary: {_sanitize(lead.profile_summary, 350)}")
+    profile_summary = cast(str | None, lead.profile_summary)
+    if profile_summary:
+        lines.append(f"Summary: {_sanitize(profile_summary, 350)}")
     return "\n".join(lines)
 
 
-def build_chat_messages(lead: Lead) -> list[dict[str, str]]:
+def build_chat_messages(lead: Lead) -> list[ChatCompletionMessageParam]:
     context = build_lead_context(lead)
     system = (
         "You are an SDR who writes concise, respectful first-touch cold emails. "
@@ -94,7 +96,10 @@ def build_chat_messages(lead: Lead) -> list[dict[str, str]]:
         "Body:\n"
         "<2-4 short paragraphs with a single CTA>\n"
     )
-    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
 
 
 def _extract_costs_from_json(data) -> list[Decimal]:
@@ -188,7 +193,7 @@ async def generate_and_store_email(
     client: AsyncOpenAI,
     model: str = DEFAULT_MODEL,
 ) -> tuple[FirstEmail, Decimal | None]:
-    messages = build_chat_messages(lead)
+    messages: Sequence[ChatCompletionMessageParam] = build_chat_messages(lead)
     completion = await client.chat.completions.create(
         model=model,
         messages=messages,

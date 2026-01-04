@@ -39,7 +39,7 @@ export default function Home() {
       try {
         const apiBase = storage.getApiBaseUrl().replace(/\/$/, "");
         const token = storage.getToken();
-        const headers = token ? { Authorization: "Bearer " + token } : {};
+        const headers = token ? { Authorization: "Bearer " + token } : undefined;
         const res = await fetch(`${apiBase}/auth/me`, { headers });
         if (res.ok) {
           setStatus("Auth bypass enabled. Redirecting...");

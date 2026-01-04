@@ -1,4 +1,4 @@
-from tortoise import BaseDBAsyncClient
+from tortoise.backends.base.client import BaseDBAsyncClient
 
 
 async def upgrade(db: BaseDBAsyncClient) -> str:

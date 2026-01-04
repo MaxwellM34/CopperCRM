@@ -46,7 +46,7 @@ export function AppShell({ title, subtitle, children }: AppShellProps) {
 
       const apiBase = storage.getApiBaseUrl().replace(/\/$/, "");
       try {
-        const headers = token ? { Authorization: "Bearer " + token } : {};
+        const headers = token ? { Authorization: "Bearer " + token } : undefined;
         const res = await fetch(`${apiBase}/auth/me`, { headers });
         if (!res.ok) throw new Error("unauthorized");
         await res.json();
