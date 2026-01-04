@@ -495,6 +495,53 @@
         ]
       }
     },
+    "/leads/{lead_id}": {
+      "get": {
+        "tags": [
+          "leads"
+        ],
+        "summary": "Get Lead Detail",
+        "operationId": "get_lead_detail_leads__lead_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/campaigns": {
       "get": {
         "tags": [
@@ -1113,6 +1160,13 @@
             },
             "type": "array",
             "title": "Steps"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignEdgeResponse"
+            },
+            "type": "array",
+            "title": "Edges"
           }
         },
         "type": "object",
@@ -1132,6 +1186,176 @@
           "updated_at"
         ],
         "title": "CampaignDetail"
+      },
+      "CampaignEdgePayload": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "from_step_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Step Id"
+          },
+          "to_step_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Step Id"
+          },
+          "from_client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Client Id"
+          },
+          "to_client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Client Id"
+          },
+          "condition_type": {
+            "type": "string",
+            "title": "Condition Type",
+            "default": "always"
+          },
+          "condition_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Value"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "title": "CampaignEdgePayload"
+      },
+      "CampaignEdgeResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "from_step_id": {
+            "type": "integer",
+            "title": "From Step Id"
+          },
+          "to_step_id": {
+            "type": "integer",
+            "title": "To Step Id"
+          },
+          "condition_type": {
+            "type": "string",
+            "title": "Condition Type"
+          },
+          "condition_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Value"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order",
+            "default": 1
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "from_step_id",
+          "to_step_id",
+          "condition_type"
+        ],
+        "title": "CampaignEdgeResponse"
       },
       "CampaignPayload": {
         "properties": {
@@ -1243,6 +1467,13 @@
             },
             "type": "array",
             "title": "Steps"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignEdgePayload"
+            },
+            "type": "array",
+            "title": "Edges"
           }
         },
         "type": "object",
@@ -1253,6 +1484,28 @@
       },
       "CampaignStepPayload": {
         "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
           "title": {
             "type": "string",
             "title": "Title"
@@ -1325,6 +1578,21 @@
       },
       "CampaignStepResponse": {
         "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
           "title": {
             "type": "string",
             "title": "Title"
@@ -1387,10 +1655,6 @@
             "type": "object",
             "title": "Config"
           },
-          "id": {
-            "type": "integer",
-            "title": "Id"
-          },
           "created_at": {
             "anyOf": [
               {
@@ -1416,9 +1680,9 @@
         },
         "type": "object",
         "required": [
+          "id",
           "title",
-          "step_type",
-          "id"
+          "step_type"
         ],
         "title": "CampaignStepResponse"
       },
@@ -1918,6 +2182,36 @@
         "type": "object",
         "title": "LaunchRequest"
       },
+      "LeadActivityItem": {
+        "properties": {
+          "activity_type": {
+            "type": "string",
+            "title": "Activity Type"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metadata",
+            "default": {}
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity_type"
+        ],
+        "title": "LeadActivityItem"
+      },
       "LeadCompanyImportResult": {
         "properties": {
           "companies_created": {
@@ -1956,8 +2250,247 @@
         "type": "object",
         "title": "LeadCompanyImportResult"
       },
+      "LeadDetail": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "work_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Email"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "job_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Title"
+          },
+          "person_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Person Address"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "personal_linkedin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personal Linkedin"
+          },
+          "seniority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seniority"
+          },
+          "departments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departments"
+          },
+          "industries": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industries"
+          },
+          "profile_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Summary"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "last_activity_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Activity At"
+          },
+          "last_activity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Activity Type"
+          },
+          "opted_out": {
+            "type": "boolean",
+            "title": "Opted Out"
+          },
+          "opted_out_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opted Out At"
+          },
+          "activities": {
+            "items": {
+              "$ref": "#/components/schemas/LeadActivityItem"
+            },
+            "type": "array",
+            "title": "Activities",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "work_email",
+          "gender",
+          "first_name",
+          "last_name",
+          "company_name",
+          "job_title",
+          "person_address",
+          "country",
+          "personal_linkedin",
+          "seniority",
+          "departments",
+          "industries",
+          "profile_summary",
+          "points",
+          "last_activity_at",
+          "last_activity_type",
+          "opted_out",
+          "opted_out_at"
+        ],
+        "title": "LeadDetail"
+      },
       "LeadDisplay": {
         "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
           "email": {
             "anyOf": [
               {
@@ -2093,6 +2626,7 @@
         },
         "type": "object",
         "required": [
+          "id",
           "email",
           "work_email",
           "gender",

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from auth.authenticate import authenticate
-from models import Campaign, CampaignStep, LLMProfile, User
+from models import Campaign, CampaignStep, CampaignEdge, LLMProfile, User
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
@@ -40,7 +40,7 @@ COLD_OUTBOUND_OVERLAY_PROFILE = {
 DRIP_PRESET = {
     "key": "ai_cold_outbound_drip",
     "name": "AI Cold Outbound Drip",
-    "description": "Three-touch cold sequence with AI follow ups and autonomous reply handling.",
+    "description": "Branched cold sequence with AI follow ups, reply handling, and outcomes.",
     "entry_point": "Cold outbound leads imported from CSV or enrichment.",
     "ai_brief": (
         "Use AI to write every touch with the lead and company context. When a prospect replies with a "
@@ -72,75 +72,98 @@ DRIP_PRESET = {
                 "cta": "Suggest a quick intro call with two time windows",
                 "ai_model": "gpt-4o-mini",
                 "personalization": "Use role, industry, and recent signals if present.",
+                "reply_wait_hours": 48,
             },
             "prompt_template": (
                 "Write a concise opener (<=110 words) using lead/company details. "
                 "Share a single value prop and propose two meeting windows."
             ),
-            "position_x": 140,
+            "position_x": 220,
             "position_y": 0,
+        },
+        {
+            "title": "Open email #1?",
+            "step_type": "condition",
+            "lane": "Decisions",
+            "sequence": 3,
+            "config": {"event": "email_open", "window_hours": 48},
+            "prompt_template": "Check if the lead opened email #1 within 2 days.",
+            "position_x": 440,
+            "position_y": -120,
+        },
+        {
+            "title": "Add +10 points",
+            "step_type": "points",
+            "lane": "Scoring",
+            "sequence": 4,
+            "config": {"points": 10, "reason": "Opened email #1"},
+            "prompt_template": "Award points for opening the first email.",
+            "position_x": 640,
+            "position_y": -220,
         },
         {
             "title": "Wait 2 days",
             "step_type": "delay",
             "lane": "Timing",
-            "sequence": 3,
+            "sequence": 5,
             "config": {"duration_hours": 48, "respect_work_hours": True},
             "prompt_template": "Delay send by ~48h and avoid weekend/overnight windows.",
-            "position_x": 260,
+            "position_x": 640,
             "position_y": 0,
         },
         {
             "title": "AI follow-up #2",
             "step_type": "ai_email",
             "lane": "Touches",
-            "sequence": 4,
+            "sequence": 6,
             "config": {
                 "tone": "direct but friendly",
                 "cta": "Share 1-line value prop plus a soft ask for a call",
                 "ai_model": "gpt-4o-mini",
                 "variant": "Short proof point followed by a question.",
+                "reply_wait_hours": 72,
             },
             "prompt_template": (
                 "Write a follow-up that adds one proof point. Ask a short question to elicit a reply and keep "
                 "a soft CTA for a call."
             ),
-            "position_x": 380,
+            "position_x": 840,
             "position_y": 0,
         },
         {
             "title": "Wait 3 days",
             "step_type": "delay",
             "lane": "Timing",
-            "sequence": 5,
+            "sequence": 7,
             "config": {"duration_hours": 72, "respect_work_hours": True},
             "prompt_template": "Delay send by ~72h and avoid weekend/overnight windows.",
-            "position_x": 500,
+            "position_x": 1040,
             "position_y": 0,
         },
         {
             "title": "AI follow-up #3",
             "step_type": "ai_email",
             "lane": "Touches",
-            "sequence": 6,
+            "sequence": 8,
             "config": {
                 "tone": "helpful and consultative",
                 "cta": "Offer to answer a quick question and propose a meeting",
                 "ai_model": "gpt-4o-mini",
                 "variant": "Share a short case insight to reopen the thread.",
+                "reply_wait_hours": 96,
             },
             "prompt_template": (
                 "Write a concise, helpful follow-up with one short case insight. "
                 "Invite a question, then propose a call if interest is shown."
             ),
-            "position_x": 620,
+            "position_x": 1240,
             "position_y": 0,
         },
         {
             "title": "AI reply handling",
             "step_type": "ai_decision",
             "lane": "Logic",
-            "sequence": 7,
+            "sequence": 9,
             "config": {
                 "model": "gpt-4o-mini",
                 "routing": [
@@ -162,35 +185,98 @@ DRIP_PRESET = {
                 "If they ask a question but do not accept a meeting yet, answer directly and keep the thread going, "
                 "then offer a call. If negative or unsubscribe, stop immediately."
             ),
-            "position_x": 740,
-            "position_y": 0,
+            "position_x": 900,
+            "position_y": -240,
+        },
+        {
+            "title": "Add +50 points",
+            "step_type": "points",
+            "lane": "Scoring",
+            "sequence": 10,
+            "config": {"points": 50, "reason": "Meeting request"},
+            "prompt_template": "Award points when a meeting is requested.",
+            "position_x": 1080,
+            "position_y": -360,
+        },
+        {
+            "title": "AI answer question",
+            "step_type": "ai_email",
+            "lane": "Touches",
+            "sequence": 11,
+            "config": {
+                "tone": "helpful and precise",
+                "cta": "Answer the question, then invite a short call if it helps",
+                "ai_model": "gpt-4o-mini",
+                "reply_mode": True,
+            },
+            "prompt_template": (
+                "Answer the question directly using the thread context. Keep it short and useful, then ask if they "
+                "are open to a quick call."
+            ),
+            "position_x": 1080,
+            "position_y": -180,
+        },
+        {
+            "title": "Wait 2 days (post reply)",
+            "step_type": "delay",
+            "lane": "Timing",
+            "sequence": 12,
+            "config": {"duration_hours": 48, "respect_work_hours": True},
+            "prompt_template": "Wait for a response after answering their question.",
+            "position_x": 1260,
+            "position_y": -180,
         },
         {
             "title": "Book meeting",
             "step_type": "goal",
             "lane": "Outcomes",
-            "sequence": 8,
+            "sequence": 13,
             "config": {
                 "action": "Drop calendar link and set status to meeting_scheduled",
                 "handoff": "Notify human owner on first confirmed slot.",
             },
             "prompt_template": "Mark success when a meeting is confirmed; notify the human owner.",
-            "position_x": 860,
-            "position_y": -80,
+            "position_x": 1260,
+            "position_y": -360,
         },
         {
             "title": "Nurture or stop",
             "step_type": "exit",
             "lane": "Outcomes",
-            "sequence": 9,
+            "sequence": 14,
             "config": {
                 "action": "Move to nurture list if warm, otherwise stop outreach.",
                 "notes": "Stop entirely after auto-reply detected twice.",
             },
             "prompt_template": "If not booked, move warm leads to nurture; stop for cold/negative leads.",
-            "position_x": 860,
-            "position_y": 80,
+            "position_x": 1260,
+            "position_y": 140,
         },
+    ],
+    "edges": [
+        {"from_sequence": 1, "to_sequence": 2, "condition_type": "always", "label": "Start"},
+        {"from_sequence": 2, "to_sequence": 3, "condition_type": "no_reply", "label": "No reply"},
+        {"from_sequence": 2, "to_sequence": 9, "condition_type": "reply", "label": "Reply"},
+        {"from_sequence": 3, "to_sequence": 4, "condition_type": "open", "label": "Opened"},
+        {"from_sequence": 3, "to_sequence": 5, "condition_type": "no_open", "label": "No open"},
+        {"from_sequence": 4, "to_sequence": 5, "condition_type": "always", "label": "Scored"},
+        {"from_sequence": 5, "to_sequence": 6, "condition_type": "always", "label": "Delay done"},
+        {"from_sequence": 6, "to_sequence": 9, "condition_type": "reply", "label": "Reply"},
+        {"from_sequence": 6, "to_sequence": 7, "condition_type": "no_reply", "label": "No reply"},
+        {"from_sequence": 7, "to_sequence": 8, "condition_type": "always", "label": "Delay done"},
+        {"from_sequence": 8, "to_sequence": 9, "condition_type": "reply", "label": "Reply"},
+        {"from_sequence": 8, "to_sequence": 14, "condition_type": "no_reply", "label": "No reply"},
+        {"from_sequence": 9, "to_sequence": 10, "condition_type": "intent", "condition_value": "meeting_request", "label": "Meeting"},
+        {"from_sequence": 10, "to_sequence": 13, "condition_type": "always", "label": "Scored"},
+        {"from_sequence": 9, "to_sequence": 11, "condition_type": "intent", "condition_value": "question", "label": "Question"},
+        {"from_sequence": 9, "to_sequence": 14, "condition_type": "intent", "condition_value": "negative", "label": "Negative"},
+        {"from_sequence": 9, "to_sequence": 14, "condition_type": "intent", "condition_value": "unsubscribe", "label": "Unsubscribe"},
+        {"from_sequence": 9, "to_sequence": 14, "condition_type": "intent", "condition_value": "no_interest", "label": "No interest"},
+        {"from_sequence": 9, "to_sequence": 14, "condition_type": "always", "label": "Default"},
+        {"from_sequence": 11, "to_sequence": 9, "condition_type": "reply", "label": "Reply"},
+        {"from_sequence": 11, "to_sequence": 12, "condition_type": "no_reply", "label": "No reply"},
+        {"from_sequence": 12, "to_sequence": 9, "condition_type": "reply", "label": "Reply"},
+        {"from_sequence": 12, "to_sequence": 14, "condition_type": "always", "label": "Timeout"},
     ],
 }
 
@@ -215,6 +301,8 @@ class LLMProfileResponse(BaseModel):
 
 
 class CampaignStepPayload(BaseModel):
+    id: int | None = None
+    client_id: str | None = None
     title: str
     step_type: str
     sequence: int = 1
@@ -223,6 +311,18 @@ class CampaignStepPayload(BaseModel):
     position_y: int | None = None
     prompt_template: str | None = None
     config: dict[str, Any] = Field(default_factory=dict)
+
+
+class CampaignEdgePayload(BaseModel):
+    id: int | None = None
+    from_step_id: int | None = None
+    to_step_id: int | None = None
+    from_client_id: str | None = None
+    to_client_id: str | None = None
+    condition_type: str = "always"
+    condition_value: str | None = None
+    label: str | None = None
+    order: int = 1
 
 
 class CampaignPayload(BaseModel):
@@ -238,6 +338,7 @@ class CampaignPayload(BaseModel):
     llm_profile_id: int | None = None
     llm_overlay_profile_id: int | None = None
     steps: list[CampaignStepPayload] = Field(default_factory=list)
+    edges: list[CampaignEdgePayload] = Field(default_factory=list)
 
 
 class LaunchRequest(BaseModel):
@@ -245,8 +346,29 @@ class LaunchRequest(BaseModel):
     audience_size: int | None = None
 
 
-class CampaignStepResponse(CampaignStepPayload):
+class CampaignStepResponse(BaseModel):
     id: int
+    client_id: str | None = None
+    title: str
+    step_type: str
+    sequence: int = 1
+    lane: str | None = None
+    position_x: int | None = None
+    position_y: int | None = None
+    prompt_template: str | None = None
+    config: dict[str, Any] = Field(default_factory=dict)
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class CampaignEdgeResponse(BaseModel):
+    id: int
+    from_step_id: int
+    to_step_id: int
+    condition_type: str
+    condition_value: str | None = None
+    label: str | None = None
+    order: int = 1
     created_at: str | None = None
     updated_at: str | None = None
 
@@ -274,6 +396,7 @@ class CampaignSummary(BaseModel):
 
 class CampaignDetail(CampaignSummary):
     steps: list[CampaignStepResponse] = Field(default_factory=list)
+    edges: list[CampaignEdgeResponse] = Field(default_factory=list)
 
 
 def _iso_or_none(value: Any) -> str | None:
@@ -334,12 +457,33 @@ async def _ensure_default_cold_outbound_profile() -> LLMProfile:
     )
 
 
+async def _seed_preset_edges(campaign: Campaign, steps: list[CampaignStep]) -> None:
+    edges = DRIP_PRESET.get("edges") or []
+    if not edges:
+        return
+    step_map = {step.sequence: step for step in steps}
+    for idx, edge in enumerate(edges, start=1):
+        from_step = step_map.get(edge.get("from_sequence"))
+        to_step = step_map.get(edge.get("to_sequence"))
+        if not from_step or not to_step:
+            continue
+        await CampaignEdge.create(
+            campaign=campaign,
+            from_step=from_step,
+            to_step=to_step,
+            condition_type=edge.get("condition_type") or "always",
+            condition_value=edge.get("condition_value"),
+            label=edge.get("label"),
+            order=edge.get("order") or idx,
+        )
+
+
 async def _seed_default_campaign(user: User) -> Campaign:
     default_profile = await _ensure_default_llm_profile(user)
     overlay_profile = await _ensure_default_cold_outbound_profile()
     existing = (
         await Campaign.filter(preset_key=DRIP_PRESET["key"])
-        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
+        .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if existing:
@@ -352,6 +496,16 @@ async def _seed_default_campaign(user: User) -> Campaign:
             needs_save = True
         if needs_save:
             await existing.save()
+        if not (getattr(existing, "edges", []) or []):
+            steps = getattr(existing, "steps", []) or []
+            await _seed_preset_edges(existing, steps)
+            refreshed = (
+                await Campaign.filter(id=existing.id)
+                .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
+                .first()
+            )
+            if refreshed:
+                return refreshed
         return existing
 
     campaign = await Campaign.create(
@@ -382,9 +536,12 @@ async def _seed_default_campaign(user: User) -> Campaign:
             position_y=step.get("position_y"),
         )
 
+    steps = await CampaignStep.filter(campaign=campaign).all()
+    await _seed_preset_edges(campaign, steps)
+
     created = (
         await Campaign.filter(id=campaign.id)
-        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
+        .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
         .first()
     )
     return created or campaign
@@ -393,6 +550,7 @@ async def _seed_default_campaign(user: User) -> Campaign:
 def _serialize_step(step: CampaignStep) -> CampaignStepResponse:
     return CampaignStepResponse(
         id=step.id,  # type: ignore[arg-type]
+        client_id=None,
         title=step.title,  # type: ignore[arg-type]
         step_type=step.step_type,  # type: ignore[arg-type]
         sequence=step.sequence,  # type: ignore[arg-type]
@@ -403,6 +561,20 @@ def _serialize_step(step: CampaignStep) -> CampaignStepResponse:
         position_y=step.position_y,  # type: ignore[arg-type]
         created_at=_iso_or_none(getattr(step, "created_at", None)),
         updated_at=_iso_or_none(getattr(step, "updated_at", None)),
+    )
+
+
+def _serialize_edge(edge: CampaignEdge) -> CampaignEdgeResponse:
+    return CampaignEdgeResponse(
+        id=edge.id,  # type: ignore[arg-type]
+        from_step_id=edge.from_step_id,  # type: ignore[arg-type]
+        to_step_id=edge.to_step_id,  # type: ignore[arg-type]
+        condition_type=edge.condition_type,  # type: ignore[arg-type]
+        condition_value=edge.condition_value,  # type: ignore[arg-type]
+        label=edge.label,  # type: ignore[arg-type]
+        order=edge.order,  # type: ignore[arg-type]
+        created_at=_iso_or_none(getattr(edge, "created_at", None)),
+        updated_at=_iso_or_none(getattr(edge, "updated_at", None)),
     )
 
 
@@ -441,10 +613,34 @@ def _serialize_campaign(
             key=lambda s: (getattr(s, "sequence", 0) or 0, getattr(s, "id", 0) or 0),
         )
         serialized_steps = [_serialize_step(step) for step in sorted_steps]
+        edges = getattr(campaign, "edges", []) or []
+        sorted_edges = sorted(
+            edges,
+            key=lambda e: (getattr(e, "order", 0) or 0, getattr(e, "id", 0) or 0),
+        )
+        serialized_edges = [_serialize_edge(edge) for edge in sorted_edges]
         base_kwargs["step_count"] = step_count if step_count is not None else len(serialized_steps)
-        return CampaignDetail(steps=serialized_steps, **base_kwargs)
+        return CampaignDetail(steps=serialized_steps, edges=serialized_edges, **base_kwargs)
 
     return CampaignSummary(**base_kwargs)
+
+
+def _resolve_edge_step_id(
+    edge: CampaignEdgePayload,
+    client_steps: dict[str, CampaignStep],
+    side: str,
+) -> int | None:
+    if side == "from":
+        if edge.from_step_id is not None:
+            return edge.from_step_id
+        if edge.from_client_id and edge.from_client_id in client_steps:
+            return client_steps[edge.from_client_id].id  # type: ignore[return-value]
+        return None
+    if edge.to_step_id is not None:
+        return edge.to_step_id
+    if edge.to_client_id and edge.to_client_id in client_steps:
+        return client_steps[edge.to_client_id].id  # type: ignore[return-value]
+    return None
 
 
 async def _resolve_profile(
@@ -475,7 +671,7 @@ async def list_campaigns(user: User = Depends(authenticate)):
     await _seed_default_campaign(user)
     campaigns = (
         await Campaign.all()
-        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
+        .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
         .order_by("-updated_at", "-id")
     )
     summaries: list[CampaignSummary] = []
@@ -590,8 +786,11 @@ async def update_llm_profile(profile_id: int, payload: LLMProfilePayload, user: 
 @router.post("", response_model=CampaignDetail)
 async def create_campaign(payload: CampaignPayload, user: User = Depends(authenticate)):
     steps_payload = payload.steps
+    use_preset_edges = False
     if not steps_payload and payload.preset_key == DRIP_PRESET["key"]:
         steps_payload = [CampaignStepPayload(**step) for step in DRIP_PRESET["steps"]]
+        if not payload.edges:
+            use_preset_edges = True
 
     llm_profile = await _resolve_profile(payload.llm_profile_id, "general", user)
     llm_overlay_profile = None
@@ -618,8 +817,10 @@ async def create_campaign(payload: CampaignPayload, user: User = Depends(authent
         llm_overlay_profile=llm_overlay_profile,
     )
 
+    client_steps: dict[str, CampaignStep] = {}
+    created_steps: list[CampaignStep] = []
     for idx, step in enumerate(steps_payload, start=1):
-        await CampaignStep.create(
+        created = await CampaignStep.create(
             campaign=campaign,
             title=step.title,
             step_type=step.step_type,
@@ -630,10 +831,34 @@ async def create_campaign(payload: CampaignPayload, user: User = Depends(authent
             position_x=step.position_x,
             position_y=step.position_y,
         )
+        created_steps.append(created)
+        if step.client_id:
+            client_steps[step.client_id] = created
+
+    if payload.edges:
+        for idx, edge in enumerate(payload.edges, start=1):
+            from_id = _resolve_edge_step_id(edge, client_steps, "from")
+            to_id = _resolve_edge_step_id(edge, client_steps, "to")
+            if not from_id or not to_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Edge references unknown steps. Save steps first or provide client_id mapping.",
+                )
+            await CampaignEdge.create(
+                campaign=campaign,
+                from_step_id=from_id,
+                to_step_id=to_id,
+                condition_type=edge.condition_type,
+                condition_value=edge.condition_value,
+                label=edge.label,
+                order=edge.order or idx,
+            )
+    elif use_preset_edges:
+        await _seed_preset_edges(campaign, created_steps)
 
     created = (
         await Campaign.filter(id=campaign.id)
-        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
+        .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if created is None:
@@ -647,7 +872,7 @@ async def get_campaign(campaign_id: int, user: User = Depends(authenticate)):
     await _seed_default_campaign(user)
     campaign = (
         await Campaign.filter(id=campaign_id)
-        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
+        .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if campaign is None:
@@ -662,7 +887,7 @@ async def update_campaign(
 ):
     campaign = (
         await Campaign.filter(id=campaign_id)
-        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
+        .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if campaign is None:
@@ -691,24 +916,65 @@ async def update_campaign(
     campaign.updated_by = user  # type: ignore[assignment]
     await campaign.save()
 
-    # Replace steps with provided list to keep ordering and prompt edits authoritative.
-    await CampaignStep.filter(campaign=campaign).delete()
+    existing_steps = {step.id: step for step in (getattr(campaign, "steps", []) or [])}
+    client_steps: dict[str, CampaignStep] = {}
+    kept_ids: set[int] = set()
+
     for idx, step in enumerate(payload.steps, start=1):
-        await CampaignStep.create(
+        if step.id is not None and step.id in existing_steps:
+            current = existing_steps[step.id]
+            current.title = step.title  # type: ignore[assignment]
+            current.step_type = step.step_type  # type: ignore[assignment]
+            current.sequence = step.sequence or idx  # type: ignore[assignment]
+            current.lane = step.lane  # type: ignore[assignment]
+            current.prompt_template = step.prompt_template  # type: ignore[assignment]
+            current.config = step.config or {}  # type: ignore[assignment]
+            current.position_x = step.position_x  # type: ignore[assignment]
+            current.position_y = step.position_y  # type: ignore[assignment]
+            await current.save()
+        else:
+            current = await CampaignStep.create(
+                campaign=campaign,
+                title=step.title,
+                step_type=step.step_type,
+                sequence=step.sequence or idx,
+                lane=step.lane,
+                prompt_template=step.prompt_template,
+                config=step.config or {},
+                position_x=step.position_x,
+                position_y=step.position_y,
+            )
+        kept_ids.add(current.id)  # type: ignore[arg-type]
+        if step.client_id:
+            client_steps[step.client_id] = current
+
+    if kept_ids:
+        await CampaignStep.filter(campaign=campaign).exclude(id__in=list(kept_ids)).delete()
+    else:
+        await CampaignStep.filter(campaign=campaign).delete()
+
+    await CampaignEdge.filter(campaign=campaign).delete()
+    for idx, edge in enumerate(payload.edges, start=1):
+        from_id = _resolve_edge_step_id(edge, client_steps, "from")
+        to_id = _resolve_edge_step_id(edge, client_steps, "to")
+        if not from_id or not to_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Edge references unknown steps. Save steps first or provide client_id mapping.",
+            )
+        await CampaignEdge.create(
             campaign=campaign,
-            title=step.title,
-            step_type=step.step_type,
-            sequence=step.sequence or idx,
-            lane=step.lane,
-            prompt_template=step.prompt_template,
-            config=step.config or {},
-            position_x=step.position_x,
-            position_y=step.position_y,
+            from_step_id=from_id,
+            to_step_id=to_id,
+            condition_type=edge.condition_type,
+            condition_value=edge.condition_value,
+            label=edge.label,
+            order=edge.order or idx,
         )
 
     updated = (
         await Campaign.filter(id=campaign.id)
-        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
+        .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if updated is None:
@@ -723,7 +989,7 @@ async def launch_campaign(
 ):
     campaign = (
         await Campaign.filter(id=campaign_id)
-        .prefetch_related("steps", "llm_profile", "llm_overlay_profile")
+        .prefetch_related("steps", "edges", "llm_profile", "llm_overlay_profile")
         .first()
     )
     if campaign is None:

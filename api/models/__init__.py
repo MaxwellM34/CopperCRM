@@ -3,6 +3,14 @@ from .user import User
 from .firstEmail import FirstEmail, FirstEmailApproval
 from .stages import Stages
 from .campaigns import Campaign, CampaignStep, LLMProfile
+from .campaign_runtime import (
+    OutboundInbox,
+    CampaignEdge,
+    LeadCampaignState,
+    LeadActivity,
+    OutboundMessage,
+    CampaignEmailDraft,
+)
 
 __all__ = [
     "Lead",
@@ -14,4 +22,10 @@ __all__ = [
     "Campaign",
     "CampaignStep",
     "LLMProfile",
+    "OutboundInbox",
+    "CampaignEdge",
+    "LeadCampaignState",
+    "LeadActivity",
+    "OutboundMessage",
+    "CampaignEmailDraft",
 ]

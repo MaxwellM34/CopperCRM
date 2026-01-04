@@ -42,6 +42,11 @@ class Lead(models.Model):
     departments = fields.CharField(max_length=255, null=True)
     industries = fields.CharField(max_length=255, null=True)
     profile_summary = fields.TextField(null=True)
+    opted_out = fields.BooleanField(default=False)
+    opted_out_at = fields.DatetimeField(null=True)
+    points = fields.IntField(default=0)
+    last_activity_at = fields.DatetimeField(null=True)
+    last_activity_type = fields.CharField(max_length=50, null=True)
 
     class Meta:  # type: ignore
         table = "leads"
