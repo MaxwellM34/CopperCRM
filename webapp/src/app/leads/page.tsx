@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AppShell from "../../components/AppShell";
 import { storage } from "../../lib/storage";
@@ -8,11 +9,13 @@ import ReactCountryFlag from "react-country-flag";
 import { getCode } from "country-list";
 
 type LeadRow = {
+  id: number;
   email?: string | null;
   work_email?: string | null;
   gender?: string | null;
   first_name?: string | null;
   last_name?: string | null;
+  company_id?: number | null;
   company_name?: string | null;
   job_title?: string | null;
   person_address?: string | null;
@@ -65,7 +68,7 @@ export default function LeadsPage() {
       </div>
 
       <div className="lead-table-card">
-        {loading && <p className="muted">Loading leads…</p>}
+        {loading && <p className="muted">Loading leads...</p>}
         {error && <p className="text-red-400">Error: {error}</p>}
         {!loading && !error && (
           <div className="lead-table">
@@ -78,8 +81,8 @@ export default function LeadsPage() {
               <span>Country</span>
               <span>LinkedIn</span>
             </div>
-            {leads.map((lead, idx) => (
-              <LeadRowItem key={`${lead.email}-${idx}`} lead={lead} />
+            {leads.map((lead) => (
+              <LeadRowItem key={lead.id} lead={lead} />
             ))}
             {leads.length === 0 && <p className="muted mt-2">No leads yet.</p>}
           </div>
@@ -106,15 +109,29 @@ function LeadRowItem({ lead }: { lead: LeadRow }) {
         <Image src={avatar} alt="avatar" width={42} height={42} className="lead-avatar" />
         <div>
           <div className="font-semibold">
-            {lead.first_name || lead.last_name ? `${lead.first_name ?? ""} ${lead.last_name ?? ""}`.trim() : "—"}
+            {lead.first_name || lead.last_name ? (
+              <Link href={`/leads/${lead.id}`} className="lead-link">
+                {`${lead.first_name ?? ""} ${lead.last_name ?? ""}`.trim()}
+              </Link>
+            ) : (
+              "n/a"
+            )}
           </div>
-          <div className="muted text-xs">{lead.company_name || "Company pending"}</div>
+          <div className="muted text-xs">
+            {lead.company_id && lead.company_name ? (
+              <Link href={`/companies/${lead.company_id}`} className="lead-link muted">
+                {lead.company_name}
+              </Link>
+            ) : (
+              lead.company_name || "Company pending"
+            )}
+          </div>
         </div>
       </div>
-      <div className="lead-cell">{contactEmail || "—"}</div>
-      <div className="lead-cell">{lead.job_title || "—"}</div>
-      <div className="lead-cell">{lead.departments || "—"}</div>
-      <div className="lead-cell">{lead.seniority || "—"}</div>
+      <div className="lead-cell">{contactEmail || "n/a"}</div>
+      <div className="lead-cell">{lead.job_title || "n/a"}</div>
+      <div className="lead-cell">{lead.departments || "n/a"}</div>
+      <div className="lead-cell">{lead.seniority || "n/a"}</div>
       <div className="lead-cell lead-flag">
         {countryCode ? (
           <div className="flag-wrap">
@@ -122,7 +139,7 @@ function LeadRowItem({ lead }: { lead: LeadRow }) {
             <span className="muted text-xs">{lead.country}</span>
           </div>
         ) : (
-          <span className="muted">—</span>
+          <span className="muted">n/a</span>
         )}
       </div>
       <div className="lead-cell">
@@ -131,7 +148,7 @@ function LeadRowItem({ lead }: { lead: LeadRow }) {
             Profile
           </a>
         ) : (
-          <span className="muted">—</span>
+          <span className="muted">n/a</span>
         )}
       </div>
     </div>

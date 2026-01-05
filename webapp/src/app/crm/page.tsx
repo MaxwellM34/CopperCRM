@@ -24,10 +24,10 @@ const tiles = [
     cta: "Open leads",
   },
   {
-    title: "Accounts",
-    desc: "Manage company records. Coming soon.",
-    href: "#",
-    soon: true,
+    title: "Companies",
+    desc: "Review company records and related leads.",
+    href: "/companies",
+    cta: "Open companies",
   },
   {
     title: "Reports",
@@ -36,8 +36,8 @@ const tiles = [
     cta: "Open reports",
   },
   {
-    title: "Build & Deploy Pipeline",
-    desc: "CI/CD automation for the CRM. Coming soon.",
+    title: "Campaigns",
+    desc: "Marketing campaigns and automations. Coming soon.",
     href: "#",
     soon: true,
   },
