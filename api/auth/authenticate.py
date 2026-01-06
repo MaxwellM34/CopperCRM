@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException
 
-from .google import bearer, verify_google_token_db
+from .google import bearer, verify_google_token, verify_google_token_db
 from config import Config
 from models import User
 
@@ -27,6 +27,23 @@ async def _get_offline_admin_user() -> User:
     if needs_save:
         await user.save()
     return user
+
+
+async def get_google_email(
+    bearer_creds=Depends(bearer),
+) -> str:
+    if not bearer_creds:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    token = (bearer_creds.credentials or "").strip()
+    if token.lower().startswith("bearer "):
+        token = token.split(None, 1)[1].strip()
+
+    email = verify_google_token(token)
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    return email
 
 
 async def authenticate(

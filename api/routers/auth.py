@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
-from auth.authenticate import authenticate
+from fastapi.responses import JSONResponse
+from auth.authenticate import authenticate, get_google_email
 from models import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -19,3 +20,11 @@ async def get_current_user(user: User = Depends(authenticate)):
         "is_admin": user.is_admin,
         "disabled": user.disabled,
     }
+
+
+@router.get("/verify", response_model=dict)
+async def verify_user(email: str = Depends(get_google_email)):
+    user = await User.get_or_none(email__iexact=email)
+    if not user or user.disabled:
+        return JSONResponse(status_code=403, content={"authorized": False})
+    return {"email": user.email, "authorized": True}

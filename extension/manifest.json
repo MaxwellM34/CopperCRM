@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Copper",
+  "version": "0.1.0",
+  "description": "Copper side panel auth check.",
+  "permissions": ["identity", "sidePanel"],
+  "host_permissions": ["http://localhost:8000/*"],
+  "action": {
+    "default_title": "Copper"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "service_worker.js"
+  }
+}
