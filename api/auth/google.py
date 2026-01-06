@@ -57,20 +57,36 @@ def _get_google_request():
         return _GoogleAuthRequest()
     return _HttpClientRequest()
 
+def _decode_google_token(token: str):
+    req = _get_google_request()
+    return id_token.verify_oauth2_token(token, req, Config.GOOGLE_AUDIENCE)
 
-async def verify_google_token_db(token: str):
+
+def verify_google_token(token: str):
     try:
-        req = _get_google_request()
-        decoded = id_token.verify_oauth2_token(token, req, Config.GOOGLE_AUDIENCE)
+        decoded = _decode_google_token(token)
         email = decoded.get("email")
         if getattr(Config, "DEBUG_AUTH", False):
             print(f"[auth] decoded token email={email!r} aud={decoded.get('aud')} iss={decoded.get('iss')}")
 
         if not email:
             return None
+        return email
+    except Exception as e:
+        if getattr(Config, "DEBUG_AUTH", False):
+            print(f"[auth] verify_google_token failed: {type(e).__name__}: {e}")
+        return None
+
+
+async def verify_google_token_db(token: str):
+    try:
+        email = verify_google_token(token)
+
+        if not email:
+            return None
 
         # Lookup existing user only; reject unknown accounts
-        user = await User.get_or_none(email=email)
+        user = await User.get_or_none(email__iexact=email)
         if getattr(Config, "DEBUG_AUTH", False):
             if user:
                 print(f"[auth] user found id={user.id} disabled={user.disabled}")

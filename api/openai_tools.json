@@ -34,6 +34,57 @@
         ]
       }
     },
+    "/auth/verify": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify User",
+        "operationId": "verify_user_auth_verify_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Verify User Auth Verify Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/auth/config": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Auth Config",
+        "operationId": "auth_config_auth_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Config Auth Config Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/leads/import": {
       "post": {
         "tags": [
