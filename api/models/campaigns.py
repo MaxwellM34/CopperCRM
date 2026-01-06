@@ -8,7 +8,7 @@ need to add:
 - There needs to be a thing that marks whether a lead has been contact before or not
 - need connections to other models that contain IMAP and stuff that includes peoples
   inboxes or maybe conversations, also their stage.
-- add more... running out of charge
+- add more... running out
 - 
 
 
