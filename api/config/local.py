@@ -11,7 +11,7 @@ class LocalConfig(BaseConfig):
     PG_PASS = os.getenv("PG_PASS", "")
     PG_DB   = os.getenv("PG_DB", "postgres")
 
-    GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE")  # Google OAuth client id
+    GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE") or os.getenv("GOOGLE_CLIENT_ID")  # Google OAuth client id
     SERVER_URL = os.getenv("SERVER_URL", "http://127.0.0.1:8000")
     DEBUG_AUTH = os.getenv("DEBUG_AUTH", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
     OFFLINE_MODE = os.getenv("OFFLINE_MODE", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
