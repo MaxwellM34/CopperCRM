@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copper CRM</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="panel">
+      <header class="panel__header">
+        <h1>Copper CRM</h1>
+        <button id="refresh" class="link-button">Refresh</button>
+      </header>
+      <section class="status">
+        <p>This popup is a fallback when the Chrome side panel API is unavailable.</p>
+        <p>Pin the extension and open it while viewing LinkedIn to sync.</p>
+      </section>
+      <section id="status" class="status"></section>
+      <section id="auth" class="card">
+        <p id="auth-message">Sign in to enable CRM sync.</p>
+        <button id="sign-in" class="primary">Sign in with Google</button>
+      </section>
+
+      <section id="profile-card" class="card hidden">
+        <div class="profile">
+          <img id="profile-avatar" alt="" />
+          <div>
+            <h2 id="profile-name">LinkedIn Profile</h2>
+            <p id="profile-headline"></p>
+            <p id="profile-company"></p>
+          </div>
+        </div>
+        <button id="add-to-copper" class="primary">Add To Copper</button>
+      </section>
+
+      <section id="messages-card" class="card hidden">
+        <h2 id="conversation-title">LinkedIn Conversation</h2>
+        <p id="conversation-preview"></p>
+        <button id="save-conversation" class="primary">Save Conversation</button>
+      </section>
+
+      <section id="empty-card" class="card hidden">
+        <p>Open a LinkedIn profile or messages to use this extension.</p>
+      </section>
+
+      <section id="settings-card" class="card">
+        <p>Need to configure API base URL or Google client ID?</p>
+        <a href="options.html" target="_blank" rel="noopener">Open settings</a>
+      </section>
+    </div>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Copper-style LinkedIn CRM",
+  "version": "0.1.0",
+  "description": "Capture LinkedIn profiles and conversations into Copper CRM.",
+  "permissions": ["storage", "identity", "activeTab", "scripting"],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://*.linkedin.com/*",
+    "http://localhost:8000/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_title": "Copper CRM",
+    "default_popup": "popup.html"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options.html"
+}

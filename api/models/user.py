@@ -7,10 +7,10 @@ class User(models.Model):
     firstname = fields.CharField(max_length=100)
     lastname = fields.CharField(max_length=100, null=True)
     is_admin = fields.BooleanField(default=False)
+    can_use_extension = fields.BooleanField(default=False)
     disabled = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta: #type: ignore
         table = 'users'
-

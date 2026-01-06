@@ -8,11 +8,13 @@ class CloudConfig(BaseConfig):
     PG_PASS = os.getenv("PG_PASS")
     PG_DB   = os.getenv("PG_DB")
 
-    GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE")
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_AUDIENCE = os.getenv("GOOGLE_AUDIENCE") or GOOGLE_CLIENT_ID
     SERVER_URL = os.getenv("SERVER_URL")
     DEBUG_AUTH = os.getenv("DEBUG_AUTH", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
     OFFLINE_MODE = os.getenv("OFFLINE_MODE", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
     OFFLINE_ADMIN_EMAIL = os.getenv("OFFLINE_ADMIN_EMAIL", "devadmin@example.com")
+    THREADS_ENCRYPTION_KEY = os.getenv("THREADS_ENCRYPTION_KEY")
 
     TORTOISE_ORM = {
         "connections": {

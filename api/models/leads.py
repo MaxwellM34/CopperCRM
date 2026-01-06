@@ -8,9 +8,20 @@ class Lead(models.Model):
     first_name = fields.CharField(max_length=100)
     last_name = fields.CharField(max_length=255)
     job_title = fields.CharField(max_length=255, null=True)
+    linkedin_url = fields.CharField(max_length=255, unique=True, null=True)
+    linkedin_headline = fields.CharField(max_length=255, null=True)
+    linkedin_company_name = fields.CharField(max_length=255, null=True)
+    avatar_bytes = fields.BinaryField(null=True)
+    avatar_content_type = fields.CharField(max_length=100, null=True)
     company = fields.ForeignKeyField(
         "models.Company",
         related_name="leads",
+        null=True,
+        on_delete=fields.SET_NULL,
+    )
+    last_collected_by = fields.ForeignKeyField(
+        "models.User",
+        related_name="collected_leads",
         null=True,
         on_delete=fields.SET_NULL,
     )
@@ -28,6 +39,8 @@ class Lead(models.Model):
     )
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
+    linkedin_updated_at = fields.DatetimeField(null=True)
+    last_collected_at = fields.DatetimeField(null=True)
     work_email_status = fields.CharField(max_length=20, null=True)
     work_email_quality = fields.CharField(max_length=20, null=True)
     work_email_confidence = fields.CharField(max_length=20, null=True)

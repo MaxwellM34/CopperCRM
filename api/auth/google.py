@@ -5,6 +5,7 @@ from config import Config
 from models import User
 
 bearer = HTTPBearer(auto_error=False)
+_ALLOWED_ISSUERS = {"accounts.google.com", "https://accounts.google.com"}
 
 try:
     from google.auth.transport.requests import Request as _GoogleAuthRequest
@@ -60,17 +61,25 @@ def _get_google_request():
 
 async def verify_google_token_db(token: str):
     try:
+        if not Config.GOOGLE_AUDIENCE:
+            return None
         req = _get_google_request()
         decoded = id_token.verify_oauth2_token(token, req, Config.GOOGLE_AUDIENCE)
+        issuer = decoded.get("iss")
+        if issuer not in _ALLOWED_ISSUERS:
+            return None
         email = decoded.get("email")
+        email_verified = decoded.get("email_verified")
         if getattr(Config, "DEBUG_AUTH", False):
             print(f"[auth] decoded token email={email!r} aud={decoded.get('aud')} iss={decoded.get('iss')}")
 
         if not email:
             return None
+        if email_verified is False:
+            return None
 
         # Lookup existing user only; reject unknown accounts
-        user = await User.get_or_none(email=email)
+        user = await User.get_or_none(email__iexact=email)
         if getattr(Config, "DEBUG_AUTH", False):
             if user:
                 print(f"[auth] user found id={user.id} disabled={user.disabled}")
