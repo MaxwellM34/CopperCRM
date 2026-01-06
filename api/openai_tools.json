@@ -62,6 +62,29 @@
         ]
       }
     },
+    "/auth/config": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Auth Config",
+        "operationId": "auth_config_auth_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Config Auth Config Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/leads/import": {
       "post": {
         "tags": [

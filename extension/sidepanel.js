@@ -1,5 +1,7 @@
-const API_BASE_URL = "http://localhost:8000";
-const GOOGLE_CLIENT_ID = "468831678336-70ia3bv84h9ifgt5d1agqjhn7ao05eg2.apps.googleusercontent.com";
+const DEFAULT_API_BASE_URL = "http://127.0.0.1:8000";
+const STORAGE_KEYS = {
+  API_BASE_URL: "apiBaseUrl",
+};
 
 const statusEl = document.getElementById("status");
 
@@ -31,15 +33,35 @@ function hasValidToken() {
   return cachedToken && cachedTokenExp - Date.now() > 60_000;
 }
 
-async function fetchIdToken() {
-  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes("YOUR_GOOGLE_CLIENT_ID")) {
-    throw new Error("Missing Google client ID in sidepanel.js");
+async function getApiBaseUrl() {
+  const stored = await chrome.storage.sync.get([STORAGE_KEYS.API_BASE_URL]);
+  return stored.apiBaseUrl || DEFAULT_API_BASE_URL;
+}
+
+async function fetchBackendConfig(apiBaseUrl) {
+  const response = await fetch(`${apiBaseUrl}/auth/config`);
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const data = await response.json();
+      detail = data.detail || data.error || JSON.stringify(data);
+    } catch (error) {
+      detail = await response.text();
+    }
+    throw new Error(detail || "Failed to load backend config");
+  }
+  return response.json();
+}
+
+async function fetchIdToken(googleClientId) {
+  if (!googleClientId) {
+    throw new Error("Missing Google client ID from backend config");
   }
 
   const redirectUrl = chrome.identity.getRedirectURL("copper");
   const nonce = crypto.randomUUID();
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-  authUrl.searchParams.set("client_id", GOOGLE_CLIENT_ID);
+  authUrl.searchParams.set("client_id", googleClientId);
   authUrl.searchParams.set("response_type", "id_token");
   authUrl.searchParams.set("redirect_uri", redirectUrl);
   authUrl.searchParams.set("scope", "openid email profile");
@@ -65,17 +87,17 @@ async function fetchIdToken() {
   return token;
 }
 
-async function getIdToken() {
+async function getIdToken(googleClientId) {
   if (hasValidToken()) {
     return cachedToken;
   }
-  const token = await fetchIdToken();
+  const token = await fetchIdToken(googleClientId);
   cacheToken(token);
   return token;
 }
 
-async function verifyWithBackend(token) {
-  const response = await fetch(`${API_BASE_URL}/auth/verify`, {
+async function verifyWithBackend(apiBaseUrl, token) {
+  const response = await fetch(`${apiBaseUrl}/auth/verify`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -105,8 +127,14 @@ async function verifyWithBackend(token) {
 async function init() {
   setStatus("Signing in...");
   try {
-    const token = await getIdToken();
-    await verifyWithBackend(token);
+    const apiBaseUrl = await getApiBaseUrl();
+    if (!apiBaseUrl) {
+      throw new Error("Missing API base URL. Set it in extension options.");
+    }
+    const config = await fetchBackendConfig(apiBaseUrl);
+    const googleClientId = config.google_client_id;
+    const token = await getIdToken(googleClientId);
+    await verifyWithBackend(apiBaseUrl, token);
   } catch (error) {
     setStatus(`Error: ${error?.message || "Unknown error"}`);
   }
