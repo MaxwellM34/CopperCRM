@@ -3,7 +3,7 @@
   "name": "Copper",
   "version": "0.1.0",
   "description": "Copper side panel auth check.",
-  "permissions": ["identity", "sidePanel", "storage"],
+  "permissions": ["identity", "sidePanel", "storage", "tabs"],
   "host_permissions": ["http://*/*", "https://*/*"],
   "action": {
     "default_title": "Copper"
