@@ -20,20 +20,82 @@
       }
       #profile {
         margin-top: 12px;
+      }
+      #profile-message {
         font-size: 13px;
+        color: #444;
       }
-      .profile-row {
-        margin-bottom: 6px;
+      #profile-card {
+        display: none;
       }
-      .profile-label {
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .profile-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #eee;
+        object-fit: cover;
+        flex: none;
+      }
+      .profile-name {
+        font-size: 16px;
         font-weight: 600;
+      }
+      .add-button {
+        width: 100%;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 8px;
+        background: #2f2f2f;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .divider {
+        margin: 14px 0;
+        border-top: 1px solid #e6e6e6;
+      }
+      .detail-section {
+        margin-bottom: 12px;
+      }
+      .detail-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #444;
+      }
+      .detail-value {
+        font-size: 14px;
+        margin-top: 4px;
+        color: #111;
+      }
+      .detail-link {
+        color: #0a66c2;
+        word-break: break-all;
+        text-decoration: none;
       }
     </style>
   </head>
   <body>
     <h1>Copper</h1>
     <div id="status">Signing in...</div>
-    <div id="profile"></div>
+    <div id="profile">
+      <div id="profile-message"></div>
+      <div id="profile-card">
+        <div class="profile-header">
+          <img id="profile-avatar" class="profile-avatar" alt="" />
+          <div id="profile-name" class="profile-name"></div>
+        </div>
+        <button id="add-button" class="add-button" type="button">Add To Copper</button>
+        <div class="divider"></div>
+        <div id="profile-details"></div>
+      </div>
+    </div>
     <script src="sidepanel.js"></script>
   </body>
 </html>

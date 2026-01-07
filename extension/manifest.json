@@ -14,5 +14,19 @@
   "background": {
     "service_worker": "service_worker.js"
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://linkedin.com/*",
+        "https://www.linkedin.com/*",
+        "https://*.linkedin.com/*",
+        "http://linkedin.com/*",
+        "http://www.linkedin.com/*",
+        "http://*.linkedin.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }
