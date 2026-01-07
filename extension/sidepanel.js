@@ -76,15 +76,22 @@ function addLinkDetail(label, value) {
   profileDetailsEl.appendChild(section);
 }
 
-function renderDetails(data, linkedinUrl) {
+function renderDetails(data, linkedinUrl, preview) {
   clearDetails();
-  if (data?.occupation) {
-    addDetail("Job Title", data.occupation);
+  const jobTitle = data?.occupation || preview?.jobTitle;
+  const employmentType = preview?.employmentType;
+  const company = data?.company || preview?.company;
+
+  if (jobTitle) {
+    addDetail("Job Title", jobTitle);
+  }
+  if (employmentType) {
+    addDetail("Employment", employmentType);
   }
   if (linkedinUrl) {
     addLinkDetail("LinkedIn", linkedinUrl);
   }
-  if (data?.company) {
+  if (company) {
     const section = document.createElement("div");
     section.className = "detail-section";
     const labelEl = document.createElement("div");
@@ -92,7 +99,7 @@ function renderDetails(data, linkedinUrl) {
     labelEl.textContent = "Company Info";
     const valueEl = document.createElement("div");
     valueEl.className = "detail-value";
-    valueEl.textContent = `Name: ${data.company}`;
+    valueEl.textContent = `Name: ${company}`;
     section.appendChild(labelEl);
     section.appendChild(valueEl);
     profileDetailsEl.appendChild(section);
@@ -290,7 +297,7 @@ async function refreshProfile() {
     setProfileMessage("");
     setProfileHeader(name, preview?.avatarUrl);
     setAddButtonVisible(!data?.found);
-    renderDetails(data?.found ? data : null, linkedinUrl);
+    renderDetails(data?.found ? data : null, linkedinUrl, preview);
   } catch (error) {
     setProfileMessage("Error loading CRM data.");
   }
