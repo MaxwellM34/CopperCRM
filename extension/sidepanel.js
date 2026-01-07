@@ -4,7 +4,12 @@ const STORAGE_KEYS = {
 };
 
 const statusEl = document.getElementById("status");
-const profileEl = document.getElementById("profile");
+const profileMessageEl = document.getElementById("profile-message");
+const profileCardEl = document.getElementById("profile-card");
+const profileAvatarEl = document.getElementById("profile-avatar");
+const profileNameEl = document.getElementById("profile-name");
+const profileDetailsEl = document.getElementById("profile-details");
+const addButtonEl = document.getElementById("add-button");
 
 let cachedToken = null;
 let cachedTokenExp = 0;
@@ -17,35 +22,81 @@ function setStatus(message) {
 }
 
 function setProfileMessage(message) {
-  profileEl.textContent = message;
+  profileMessageEl.textContent = message || "";
+  profileCardEl.style.display = message ? "none" : "block";
 }
 
-function renderProfile(data) {
-  profileEl.textContent = "";
-  if (!data) return;
+function setAddButtonVisible(visible) {
+  addButtonEl.style.display = visible ? "block" : "none";
+}
 
-  const fields = [
-    { label: "Name", value: data.name },
-    { label: "Occupation", value: data.occupation },
-    { label: "Company", value: data.company },
-    { label: "Email", value: data.email },
-    { label: "Location", value: data.location },
-    { label: "Description", value: data.description },
-  ];
+function setProfileHeader(name, avatarUrl) {
+  profileNameEl.textContent = name || "LinkedIn Profile";
+  if (avatarUrl) {
+    profileAvatarEl.src = avatarUrl;
+    profileAvatarEl.style.visibility = "visible";
+  } else {
+    profileAvatarEl.removeAttribute("src");
+    profileAvatarEl.style.visibility = "hidden";
+  }
+}
 
-  fields.forEach((field) => {
-    if (!field.value) return;
-    const row = document.createElement("div");
-    row.className = "profile-row";
-    const label = document.createElement("span");
-    label.className = "profile-label";
-    label.textContent = `${field.label}: `;
-    const value = document.createElement("span");
-    value.textContent = field.value;
-    row.appendChild(label);
-    row.appendChild(value);
-    profileEl.appendChild(row);
-  });
+function clearDetails() {
+  profileDetailsEl.textContent = "";
+}
+
+function addDetail(label, value) {
+  const section = document.createElement("div");
+  section.className = "detail-section";
+  const labelEl = document.createElement("div");
+  labelEl.className = "detail-label";
+  labelEl.textContent = label;
+  const valueEl = document.createElement("div");
+  valueEl.className = "detail-value";
+  valueEl.textContent = value;
+  section.appendChild(labelEl);
+  section.appendChild(valueEl);
+  profileDetailsEl.appendChild(section);
+}
+
+function addLinkDetail(label, value) {
+  const section = document.createElement("div");
+  section.className = "detail-section";
+  const labelEl = document.createElement("div");
+  labelEl.className = "detail-label";
+  labelEl.textContent = label;
+  const valueEl = document.createElement("a");
+  valueEl.className = "detail-value detail-link";
+  valueEl.href = value;
+  valueEl.target = "_blank";
+  valueEl.rel = "noreferrer";
+  valueEl.textContent = value;
+  section.appendChild(labelEl);
+  section.appendChild(valueEl);
+  profileDetailsEl.appendChild(section);
+}
+
+function renderDetails(data, linkedinUrl) {
+  clearDetails();
+  if (data?.occupation) {
+    addDetail("Job Title", data.occupation);
+  }
+  if (linkedinUrl) {
+    addLinkDetail("LinkedIn", linkedinUrl);
+  }
+  if (data?.company) {
+    const section = document.createElement("div");
+    section.className = "detail-section";
+    const labelEl = document.createElement("div");
+    labelEl.className = "detail-label";
+    labelEl.textContent = "Company Info";
+    const valueEl = document.createElement("div");
+    valueEl.className = "detail-value";
+    valueEl.textContent = `Name: ${data.company}`;
+    section.appendChild(labelEl);
+    section.appendChild(valueEl);
+    profileDetailsEl.appendChild(section);
+  }
 }
 
 function decodeJwt(token) {
@@ -161,6 +212,17 @@ async function verifyWithBackend(apiBaseUrl, token) {
   return true;
 }
 
+async function fetchProfilePreview(tabId) {
+  if (!tabId || !chrome.tabs?.sendMessage) {
+    return null;
+  }
+  try {
+    return await chrome.tabs.sendMessage(tabId, { type: "getProfilePreview" });
+  } catch (error) {
+    return null;
+  }
+}
+
 function isLinkedInProfileUrl(url) {
   if (!url) return false;
   try {
@@ -219,14 +281,16 @@ async function refreshProfile() {
       return;
     }
 
-    const token = await getIdToken(cachedGoogleClientId);
-    const data = await fetchProfile(cachedApiBaseUrl, token, url);
-    if (!data?.found) {
-      setProfileMessage("No CRM record for this profile.");
-      return;
-    }
+    const preview = await fetchProfilePreview(tab?.id);
+    const linkedinUrl = preview?.linkedinUrl || url;
 
-    renderProfile(data);
+    const token = await getIdToken(cachedGoogleClientId);
+    const data = await fetchProfile(cachedApiBaseUrl, token, linkedinUrl);
+    const name = data?.name || preview?.name || "";
+    setProfileMessage("");
+    setProfileHeader(name, preview?.avatarUrl);
+    setAddButtonVisible(!data?.found);
+    renderDetails(data?.found ? data : null, linkedinUrl);
   } catch (error) {
     setProfileMessage("Error loading CRM data.");
   }
