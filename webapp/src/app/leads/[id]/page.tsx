@@ -15,6 +15,7 @@ type LeadDetail = {
   gender?: string | null;
   first_name?: string | null;
   last_name?: string | null;
+  avatar_url?: string | null;
   company_id?: number | null;
   company_name?: string | null;
   job_title?: string | null;
@@ -69,7 +70,8 @@ export default function LeadProfilePage({ params }: { params: { id: string } }) 
 
   const gender = (lead?.gender || "unknown_gender").toLowerCase();
   const avatar =
-    gender === "female" ? "/femaleAvatar.png" : gender === "male" ? "/maleAvatar.png" : "/unspecifiedAvatar.png";
+    lead?.avatar_url ||
+    (gender === "female" ? "/femaleAvatar.png" : gender === "male" ? "/maleAvatar.png" : "/unspecifiedAvatar.png");
 
   return (
     <AppShell title="Lead profile" subtitle="Lead details and activity overview.">

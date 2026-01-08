@@ -46,6 +46,15 @@
         font-size: 16px;
         font-weight: 600;
       }
+      .profile-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .profile-subtitle {
+        font-size: 13px;
+        color: #444;
+      }
       .add-button {
         width: 100%;
         padding: 10px 12px;
@@ -89,7 +98,10 @@
       <div id="profile-card">
         <div class="profile-header">
           <img id="profile-avatar" class="profile-avatar" alt="" />
-          <div id="profile-name" class="profile-name"></div>
+          <div class="profile-text">
+            <div id="profile-name" class="profile-name"></div>
+            <div id="profile-subtitle" class="profile-subtitle"></div>
+          </div>
         </div>
         <button id="add-button" class="add-button" type="button">Add To Copper</button>
         <div class="divider"></div>

@@ -17,6 +17,7 @@ class LeadDisplay(BaseModel):
     gender: Optional[str]
     first_name: Optional[str]
     last_name: Optional[str]
+    avatar_url: Optional[str]
     company_id: Optional[int]
     company_name: Optional[str]
     job_title: Optional[str]
@@ -34,6 +35,7 @@ class LeadDetail(BaseModel):
     gender: Optional[str]
     first_name: Optional[str]
     last_name: Optional[str]
+    avatar_url: Optional[str]
     company_id: Optional[int]
     company_name: Optional[str]
     job_title: Optional[str]
@@ -57,6 +59,7 @@ async def displayLeads(user: User = Depends(authenticate)):
         "gender",
         "first_name",
         "last_name",
+        "avatar_url",
         "company_id",
         "company__company_name",
         "job_title",
@@ -86,6 +89,7 @@ async def get_lead(lead_id: int, user: User = Depends(authenticate)):
         gender=cast(Optional[str], lead.gender),
         first_name=cast(Optional[str], lead.first_name),
         last_name=cast(Optional[str], lead.last_name),
+        avatar_url=cast(Optional[str], getattr(lead, "avatar_url", None)),
         company_id=company_id,
         company_name=company_name,
         job_title=cast(Optional[str], lead.job_title),

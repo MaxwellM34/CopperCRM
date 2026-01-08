@@ -142,4 +142,5 @@ def lead_to_profile(lead: Lead) -> dict[str, Optional[str]]:
         "location": location,
         "linkedin_url": _get_optional_str(lead, "personal_linkedin"),
         "description": _get_optional_str(lead, "profile_summary"),
+        "avatar_url": _get_optional_str(lead, "avatar_url"),
     }

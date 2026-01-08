@@ -8,6 +8,7 @@ const profileMessageEl = document.getElementById("profile-message");
 const profileCardEl = document.getElementById("profile-card");
 const profileAvatarEl = document.getElementById("profile-avatar");
 const profileNameEl = document.getElementById("profile-name");
+const profileSubtitleEl = document.getElementById("profile-subtitle");
 const profileDetailsEl = document.getElementById("profile-details");
 const addButtonEl = document.getElementById("add-button");
 
@@ -20,6 +21,9 @@ let lastProfileUrl = "";
 let pollTimerId = null;
 let previewPollTimerId = null;
 let lastPreviewKey = "";
+let lastAutoSyncKey = "";
+let currentPreview = null;
+let currentLinkedinUrl = "";
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -34,8 +38,12 @@ function setAddButtonVisible(visible) {
   addButtonEl.style.display = visible ? "block" : "none";
 }
 
-function setProfileHeader(name, avatarUrl) {
+function setProfileHeader(name, subtitle, avatarUrl) {
   profileNameEl.textContent = name || "LinkedIn Profile";
+  if (profileSubtitleEl) {
+    profileSubtitleEl.textContent = subtitle || "";
+    profileSubtitleEl.style.display = subtitle ? "block" : "none";
+  }
   if (avatarUrl) {
     profileAvatarEl.src = avatarUrl;
     profileAvatarEl.style.visibility = "visible";
@@ -93,6 +101,27 @@ function buildPreviewKey(preview) {
     .join("|");
 }
 
+function buildLeadPayload(preview, linkedinUrl, source, createIfMissing) {
+  return {
+    url: linkedinUrl,
+    name: preview?.name || "",
+    jobTitle: preview?.jobTitle || "",
+    company: preview?.company || "",
+    avatarUrl: preview?.avatarUrl || "",
+    source,
+    createIfMissing,
+  };
+}
+
+function hasLeadPayloadData(payload) {
+  return Boolean(
+    payload?.name ||
+      payload?.jobTitle ||
+      payload?.company ||
+      payload?.avatarUrl
+  );
+}
+
 function renderDetails(data, linkedinUrl, preview) {
   clearDetails();
   const jobTitle = data?.occupation || preview?.jobTitle;
@@ -125,11 +154,58 @@ function renderDetails(data, linkedinUrl, preview) {
 
 function updateProfileView(data, linkedinUrl, preview) {
   const name = data?.name || preview?.name || "";
+  const company = data?.company || preview?.company || "";
   setProfileMessage("");
-  setProfileHeader(name, preview?.avatarUrl);
+  setProfileHeader(name, company, preview?.avatarUrl);
   setAddButtonVisible(!data?.found);
   renderDetails(data?.found ? data : null, linkedinUrl, preview);
   lastPreviewKey = buildPreviewKey(preview);
+}
+
+async function upsertLead(apiBaseUrl, token, payload) {
+  const response = await fetch(`${apiBaseUrl}/extension/lead`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const data = await response.json();
+      detail = data.detail || data.error || JSON.stringify(data);
+    } catch (error) {
+      detail = await response.text();
+    }
+    throw new Error(detail || "Failed to save lead");
+  }
+
+  return response.json();
+}
+
+async function maybeAutoSync(data, preview, linkedinUrl) {
+  if (!data?.found || !preview || !linkedinUrl) return;
+  if (!cachedApiBaseUrl || !cachedGoogleClientId) return;
+
+  const payload = buildLeadPayload(preview, linkedinUrl, "extension:auto", false);
+  if (!hasLeadPayloadData(payload)) return;
+
+  const key = `${linkedinUrl}|${buildPreviewKey(preview)}`;
+  if (!key || key === lastAutoSyncKey) return;
+  lastAutoSyncKey = key;
+
+  try {
+    const token = await getIdToken(cachedGoogleClientId);
+    const result = await upsertLead(cachedApiBaseUrl, token, payload);
+    if (result?.found) {
+      updateProfileView(result, linkedinUrl, preview);
+    }
+  } catch (error) {
+    // Ignore auto-sync failures.
+  }
 }
 
 function stopPreviewPolling() {
@@ -154,7 +230,9 @@ function startPreviewPolling(tabId, linkedinUrl, data) {
     if (!preview) return;
     const key = buildPreviewKey(preview);
     if (!key || key === lastPreviewKey) return;
+    currentPreview = preview;
     updateProfileView(data, linkedinUrl, preview);
+    await maybeAutoSync(data, preview, linkedinUrl);
   }, intervalMs);
 }
 
@@ -337,6 +415,8 @@ async function refreshProfile() {
     const url = tab?.url || "";
     if (!isLinkedInProfileUrl(url)) {
       lastProfileUrl = "";
+      currentPreview = null;
+      currentLinkedinUrl = "";
       setProfileMessage("Open a LinkedIn profile to see CRM data.");
       return;
     }
@@ -344,11 +424,14 @@ async function refreshProfile() {
     const preview = await fetchProfilePreview(tab?.id);
     const linkedinUrl = url;
     lastProfileUrl = url;
+    currentPreview = preview;
+    currentLinkedinUrl = linkedinUrl;
 
     const token = await getIdToken(cachedGoogleClientId);
     const data = await fetchProfile(cachedApiBaseUrl, token, linkedinUrl);
     updateProfileView(data, linkedinUrl, preview);
     startPreviewPolling(tab?.id, linkedinUrl, data);
+    await maybeAutoSync(data, preview, linkedinUrl);
   } catch (error) {
     setProfileMessage("Error loading CRM data.");
   }
@@ -397,6 +480,25 @@ async function init() {
 }
 
 init();
+
+if (addButtonEl) {
+  addButtonEl.addEventListener("click", async () => {
+    if (!currentPreview || !currentLinkedinUrl) return;
+    if (!cachedApiBaseUrl || !cachedGoogleClientId) return;
+    const payload = buildLeadPayload(currentPreview, currentLinkedinUrl, "extension:add", true);
+    if (!hasLeadPayloadData(payload)) return;
+    try {
+      const token = await getIdToken(cachedGoogleClientId);
+      const result = await upsertLead(cachedApiBaseUrl, token, payload);
+      if (result?.found) {
+        updateProfileView(result, currentLinkedinUrl, currentPreview);
+        setAddButtonVisible(false);
+      }
+    } catch (error) {
+      setProfileMessage("Error saving to CRM.");
+    }
+  });
+}
 
 if (chrome.tabs?.onActivated) {
   chrome.tabs.onActivated.addListener(() => {
