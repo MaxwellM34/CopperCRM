@@ -1,8 +1,10 @@
 function getCanonicalUrl() {
-  return (
-    document.querySelector("link[rel='canonical']")?.href ||
-    window.location.href.split("?")[0]
-  );
+  const href = window.location.href.split("?")[0];
+  const path = window.location.pathname.toLowerCase();
+  if (path.startsWith("/in/") || path.startsWith("/pub/")) {
+    return href;
+  }
+  return document.querySelector("link[rel='canonical']")?.href || href;
 }
 
 function normalizeText(value) {

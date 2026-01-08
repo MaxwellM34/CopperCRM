@@ -16,6 +16,10 @@ let cachedTokenExp = 0;
 let cachedApiBaseUrl = null;
 let cachedGoogleClientId = null;
 let isAuthorized = false;
+let lastProfileUrl = "";
+let pollTimerId = null;
+let previewPollTimerId = null;
+let lastPreviewKey = "";
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -76,6 +80,19 @@ function addLinkDetail(label, value) {
   profileDetailsEl.appendChild(section);
 }
 
+function buildPreviewKey(preview) {
+  if (!preview) return "";
+  return [
+    preview.name,
+    preview.avatarUrl,
+    preview.jobTitle,
+    preview.company,
+    preview.employmentType,
+  ]
+    .map((value) => value || "")
+    .join("|");
+}
+
 function renderDetails(data, linkedinUrl, preview) {
   clearDetails();
   const jobTitle = data?.occupation || preview?.jobTitle;
@@ -104,6 +121,41 @@ function renderDetails(data, linkedinUrl, preview) {
     section.appendChild(valueEl);
     profileDetailsEl.appendChild(section);
   }
+}
+
+function updateProfileView(data, linkedinUrl, preview) {
+  const name = data?.name || preview?.name || "";
+  setProfileMessage("");
+  setProfileHeader(name, preview?.avatarUrl);
+  setAddButtonVisible(!data?.found);
+  renderDetails(data?.found ? data : null, linkedinUrl, preview);
+  lastPreviewKey = buildPreviewKey(preview);
+}
+
+function stopPreviewPolling() {
+  if (previewPollTimerId) {
+    clearInterval(previewPollTimerId);
+    previewPollTimerId = null;
+  }
+}
+
+function startPreviewPolling(tabId, linkedinUrl, data) {
+  stopPreviewPolling();
+  let attempts = 0;
+  const maxAttempts = 8;
+  const intervalMs = 750;
+  previewPollTimerId = setInterval(async () => {
+    attempts += 1;
+    if (attempts > maxAttempts || lastProfileUrl !== linkedinUrl) {
+      stopPreviewPolling();
+      return;
+    }
+    const preview = await fetchProfilePreview(tabId);
+    if (!preview) return;
+    const key = buildPreviewKey(preview);
+    if (!key || key === lastPreviewKey) return;
+    updateProfileView(data, linkedinUrl, preview);
+  }, intervalMs);
 }
 
 function decodeJwt(token) {
@@ -284,22 +336,41 @@ async function refreshProfile() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const url = tab?.url || "";
     if (!isLinkedInProfileUrl(url)) {
+      lastProfileUrl = "";
       setProfileMessage("Open a LinkedIn profile to see CRM data.");
       return;
     }
 
     const preview = await fetchProfilePreview(tab?.id);
-    const linkedinUrl = preview?.linkedinUrl || url;
+    const linkedinUrl = url;
+    lastProfileUrl = url;
 
     const token = await getIdToken(cachedGoogleClientId);
     const data = await fetchProfile(cachedApiBaseUrl, token, linkedinUrl);
-    const name = data?.name || preview?.name || "";
-    setProfileMessage("");
-    setProfileHeader(name, preview?.avatarUrl);
-    setAddButtonVisible(!data?.found);
-    renderDetails(data?.found ? data : null, linkedinUrl, preview);
+    updateProfileView(data, linkedinUrl, preview);
+    startPreviewPolling(tab?.id, linkedinUrl, data);
   } catch (error) {
     setProfileMessage("Error loading CRM data.");
+  }
+}
+
+async function pollForProfileChange() {
+  if (!isAuthorized || !chrome.tabs?.query) {
+    return;
+  }
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const url = tab?.url || "";
+    if (!isLinkedInProfileUrl(url)) {
+      lastProfileUrl = "";
+      stopPreviewPolling();
+      return;
+    }
+    if (url !== lastProfileUrl) {
+      await refreshProfile();
+    }
+  } catch (error) {
+    // Ignore polling errors.
   }
 }
 
@@ -316,6 +387,9 @@ async function init() {
     const token = await getIdToken(cachedGoogleClientId);
     isAuthorized = await verifyWithBackend(apiBaseUrl, token);
     await refreshProfile();
+    if (!pollTimerId) {
+      pollTimerId = setInterval(pollForProfileChange, 1500);
+    }
   } catch (error) {
     setStatus(`Error: ${error?.message || "Unknown error"}`);
     setProfileMessage("");
