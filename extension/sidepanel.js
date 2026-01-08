@@ -9,6 +9,9 @@ const profileCardEl = document.getElementById("profile-card");
 const profileAvatarEl = document.getElementById("profile-avatar");
 const profileNameEl = document.getElementById("profile-name");
 const profileSubtitleEl = document.getElementById("profile-subtitle");
+const loadingEl = document.getElementById("loading");
+const homeEl = document.getElementById("home");
+const profileEl = document.getElementById("profile");
 const addButtonEl = document.getElementById("add-button");
 const updateButtonEl = document.getElementById("update-button");
 const fieldNameEl = document.getElementById("field-name");
@@ -53,6 +56,24 @@ function setUpdateButtonVisible(visible) {
 function setActionButtons(found) {
   setAddButtonVisible(!found);
   setUpdateButtonVisible(Boolean(found));
+}
+
+function activateHomeView() {
+  if (homeEl) homeEl.style.display = "block";
+  if (profileEl) profileEl.style.display = "none";
+}
+
+function activateProfileView() {
+  if (homeEl) homeEl.style.display = "none";
+  if (profileEl) profileEl.style.display = "block";
+}
+
+function showLoading() {
+  if (loadingEl) loadingEl.classList.remove("hidden");
+}
+
+function hideLoading() {
+  if (loadingEl) loadingEl.classList.add("hidden");
 }
 
 function setProfileHeader(name, subtitle, avatarUrl) {
@@ -408,10 +429,15 @@ async function refreshProfile() {
       lastProfileUrl = "";
       currentPreview = null;
       currentLinkedinUrl = "";
+      activateHomeView();
       setProfileMessage("Open a LinkedIn profile to see CRM data.");
+      setStatus("Visit a LinkedIn profile to sync.");
+      hideLoading();
       return;
     }
 
+    activateProfileView();
+    showLoading();
     const preview = await fetchProfilePreview(tab?.id);
     const linkedinUrl = url;
     lastProfileUrl = url;
@@ -423,8 +449,10 @@ async function refreshProfile() {
     updateProfileView(data, linkedinUrl, preview);
     startPreviewPolling(tab?.id, linkedinUrl, data);
     await maybeAutoSync(data, preview, linkedinUrl);
+    hideLoading();
   } catch (error) {
     setProfileMessage("Error loading CRM data.");
+    hideLoading();
   }
 }
 

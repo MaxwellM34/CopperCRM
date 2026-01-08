@@ -5,28 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Copper</title>
     <style>
+      :root {
+        color: #111;
+        font-family: "Inter", "Segoe UI", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: Arial, sans-serif;
         margin: 0;
         padding: 16px;
-        color: #111;
+        background: #f6f6f6;
+        min-height: 100vh;
       }
-      h1 {
+      .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .panel-header h1 {
         font-size: 20px;
-        margin: 0 0 12px;
+        margin: 0;
+        color: #111;
+        font-weight: 600;
+      }
+      .logo {
+        width: 32px;
+        height: 32px;
+      }
+      .home-view {
+        font-family: "Cormorant Garamond", "Georgia", serif;
+      }
+      .home-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .home-label {
+        font-size: 16px;
+        color: #444;
+      }
+      .home-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #999;
+      }
+      .profile-view {
+        display: none;
+        position: relative;
       }
       #status {
         font-size: 14px;
-      }
-      #profile {
-        margin-top: 12px;
-      }
-      #profile-message {
-        font-size: 13px;
-        color: #444;
+        margin-bottom: 6px;
+        color: #666;
       }
       #profile-card {
         display: none;
+        background: #fff;
+        border-radius: 20px;
+        padding: 18px;
+        border: 1px solid rgba(0, 0, 0, 0.07);
+        box-shadow: 0 10px 40px rgba(11, 22, 41, 0.08);
+        position: relative;
       }
       .profile-header {
         display: flex;
@@ -35,8 +81,8 @@
         margin-bottom: 12px;
       }
       .profile-avatar {
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         background: #eee;
         object-fit: cover;
@@ -45,11 +91,6 @@
       .profile-name {
         font-size: 16px;
         font-weight: 600;
-      }
-      .profile-text {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
       }
       .profile-subtitle {
         font-size: 13px;
@@ -60,7 +101,7 @@
         padding: 10px 12px;
         border: none;
         border-radius: 8px;
-        background: #2f2f2f;
+        background: #1f1f1f;
         color: #fff;
         font-size: 14px;
         font-weight: 600;
@@ -69,9 +110,6 @@
       .divider {
         margin: 14px 0;
         border-top: 1px solid #e6e6e6;
-      }
-      .detail-section {
-        margin-bottom: 12px;
       }
       .profile-form {
         display: flex;
@@ -82,11 +120,6 @@
         display: flex;
         flex-direction: column;
         gap: 4px;
-      }
-      .detail-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #444;
       }
       .field-input {
         font-size: 14px;
@@ -103,22 +136,161 @@
         flex-direction: column;
         gap: 8px;
       }
-      .detail-value {
-        font-size: 14px;
-        margin-top: 4px;
-        color: #111;
+      .loading-overlay {
+        position: absolute;
+        inset: 8px;
+        background: radial-gradient(circle at 20% 20%, rgba(255, 102, 0, 0.25), rgba(255, 255, 255, 0)),
+          linear-gradient(135deg, #1c1c1c, #3b3b3b);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 10;
+        color: #fff;
+        overflow: hidden;
+        gap: 12px;
       }
-      .detail-link {
-        color: #0a66c2;
-        word-break: break-all;
-        text-decoration: none;
+      .loading-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+      }
+      .cat-wrapper {
+        position: relative;
+        width: 64px;
+        height: 64px;
+      }
+      .cat {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff9500, #ff4500);
+        animation: cat-walk 1.6s ease-in-out infinite alternate;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      }
+      .cat::after {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.7);
+        animation: cat-spin 1.6s linear infinite;
+      }
+      .cat-tail {
+        position: absolute;
+        width: 36px;
+        height: 6px;
+        background: linear-gradient(135deg, #ff4500, #ff9500);
+        border-radius: 999px;
+        bottom: 6px;
+        right: -8px;
+        transform-origin: left center;
+        animation: tail-swing 1.2s ease-in-out infinite alternate;
+      }
+      .loading-text {
+        font-size: 18px;
+        letter-spacing: 0.12em;
+      }
+      .loading-text .dots {
+        animation: dots 1.2s steps(3) infinite;
+      }
+      .liquid {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, rgba(255, 102, 0, 0.3), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.2));
+        animation: liquid 4s ease-in-out infinite;
+        mix-blend-mode: screen;
+        opacity: 0.6;
+      }
+      @keyframes cat-walk {
+        from {
+          transform: translateX(-6px);
+        }
+        to {
+          transform: translateX(6px) scale(1.05);
+        }
+      }
+      @keyframes cat-spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes tail-swing {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(20deg);
+        }
+      }
+      @keyframes dots {
+        0% {
+          content: "";
+        }
+        33% {
+          content: ".";
+        }
+        66% {
+          content: "..";
+        }
+        100% {
+          content: "...";
+        }
+      }
+      @keyframes liquid {
+        0% {
+          transform: translateX(-20%) skewX(5deg);
+        }
+        50% {
+          transform: translateX(20%) skewX(-3deg);
+        }
+        100% {
+          transform: translateX(-20%) skewX(5deg);
+        }
+      }
+      .hidden {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <h1>Copper</h1>
-    <div id="status">Signing in...</div>
-    <div id="profile">
+    <header class="panel-header">
+      <img src="copper.png" class="logo" alt="Copper" />
+      <h1>Copper CRM</h1>
+    </header>
+    <div id="home" class="home-view">
+      <div class="home-card">
+        <div class="home-row">
+          <div class="home-label">Email Reminders</div>
+          <div class="home-value">No Email Reminders</div>
+        </div>
+        <div class="home-row">
+          <div class="home-label">Upcoming Tasks</div>
+          <div class="home-value">No Tasks</div>
+        </div>
+      </div>
+    </div>
+    <div id="profile" class="profile-view">
+      <div id="loading" class="loading-overlay hidden">
+        <div class="loading-content">
+          <div class="cat-wrapper">
+            <div class="cat"></div>
+            <div class="cat-tail"></div>
+          </div>
+          <div class="loading-text">
+            <span>Loading</span>
+            <span class="dots">...</span>
+          </div>
+        </div>
+        <div class="liquid"></div>
+      </div>
+      <div id="status">Signing in...</div>
       <div id="profile-message"></div>
       <div id="profile-card">
         <div class="profile-header">
