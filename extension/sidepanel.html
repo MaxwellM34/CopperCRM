@@ -5,28 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Copper</title>
     <style>
+      :root {
+        color: #111;
+        font-family: "Optima", "Candara", "Geneva", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: Arial, sans-serif;
         margin: 0;
         padding: 16px;
-        color: #111;
+        background: #f6f6f6;
+        min-height: 100vh;
       }
-      h1 {
+      .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .panel-header h1 {
         font-size: 20px;
-        margin: 0 0 12px;
+        margin: 0;
+        color: #111;
+        font-weight: 600;
+      }
+      .logo {
+        width: 32px;
+        height: 32px;
+      }
+      .home-view {
+        font-family: "Garamond", "Georgia", serif;
+      }
+      .home-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .home-label {
+        font-size: 16px;
+        color: #444;
+      }
+      .home-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #999;
+      }
+      .profile-view {
+        display: none;
+        position: relative;
+        min-height: 70vh;
       }
       #status {
         font-size: 14px;
-      }
-      #profile {
-        margin-top: 12px;
+        margin-bottom: 6px;
+        color: #666;
       }
       #profile-message {
         font-size: 13px;
-        color: #444;
+        color: #666;
+        margin-bottom: 8px;
       }
       #profile-card {
         display: none;
+        background: #fff;
+        border-radius: 20px;
+        padding: 18px;
+        border: 1px solid rgba(0, 0, 0, 0.07);
+        box-shadow: 0 10px 40px rgba(11, 22, 41, 0.08);
+        position: relative;
       }
       .profile-header {
         display: flex;
@@ -35,8 +87,8 @@
         margin-bottom: 12px;
       }
       .profile-avatar {
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         background: #eee;
         object-fit: cover;
@@ -46,12 +98,16 @@
         font-size: 16px;
         font-weight: 600;
       }
+      .profile-subtitle {
+        font-size: 13px;
+        color: #444;
+      }
       .add-button {
         width: 100%;
         padding: 10px 12px;
         border: none;
         border-radius: 8px;
-        background: #2f2f2f;
+        background: #1f1f1f;
         color: #fff;
         font-size: 14px;
         font-weight: 600;
@@ -61,39 +117,259 @@
         margin: 14px 0;
         border-top: 1px solid #e6e6e6;
       }
-      .detail-section {
-        margin-bottom: 12px;
+      .profile-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
-      .detail-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #444;
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
-      .detail-value {
+      .field-input {
         font-size: 14px;
-        margin-top: 4px;
-        color: #111;
+        padding: 8px 10px;
+        border: 1px solid #d0d0d0;
+        border-radius: 6px;
       }
-      .detail-link {
-        color: #0a66c2;
-        word-break: break-all;
-        text-decoration: none;
+      .field-input:focus {
+        outline: none;
+        border-color: #888;
+      }
+      .button-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 15% 20%, rgba(255, 140, 0, 0.35), rgba(255, 255, 255, 0)),
+          linear-gradient(135deg, #141414, #2f2f2f);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 50;
+        color: #fff;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms ease;
+      }
+      .loading-overlay.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .loading-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        z-index: 2;
+      }
+      .cat-walk {
+        position: relative;
+        width: 120px;
+        height: 60px;
+        animation: walk 2.2s ease-in-out infinite;
+      }
+      .cat-body {
+        position: absolute;
+        width: 70px;
+        height: 30px;
+        background: #ff8c00;
+        border-radius: 18px 18px 16px 16px;
+        top: 16px;
+        left: 22px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+      }
+      .cat-head {
+        position: absolute;
+        width: 26px;
+        height: 22px;
+        background: #ff8c00;
+        border-radius: 12px;
+        top: 10px;
+        left: 70px;
+      }
+      .cat-head::before,
+      .cat-head::after {
+        content: "";
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: #ff8c00;
+        border-radius: 2px;
+        top: -4px;
+      }
+      .cat-head::before {
+        left: 2px;
+      }
+      .cat-head::after {
+        right: 2px;
+      }
+      .cat-tail {
+        position: absolute;
+        width: 26px;
+        height: 8px;
+        background: #ff8c00;
+        border-radius: 999px;
+        top: 18px;
+        left: 6px;
+        transform-origin: right center;
+        animation: tail 0.9s ease-in-out infinite alternate;
+      }
+      .cat-leg {
+        position: absolute;
+        width: 10px;
+        height: 20px;
+        background: #ff8c00;
+        border-radius: 6px;
+        bottom: 4px;
+        animation: leg 0.6s ease-in-out infinite alternate;
+      }
+      .leg-1 { left: 26px; animation-delay: 0s; }
+      .leg-2 { left: 44px; animation-delay: 0.2s; }
+      .leg-3 { left: 60px; animation-delay: 0.1s; }
+      .leg-4 { left: 78px; animation-delay: 0.3s; }
+      .morph-spinner {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #ffd7a1;
+        animation: spin 1s linear infinite;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+      }
+      .loading-overlay.is-visible .morph-spinner {
+        opacity: 1;
+      }
+      .loading-text {
+        font-size: 18px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+      .loading-text .dots::after {
+        content: "";
+        animation: dots 1.4s steps(4) infinite;
+      }
+      .liquid {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, rgba(255, 140, 0, 0.3), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.2));
+        animation: liquid 6s ease-in-out infinite;
+        mix-blend-mode: screen;
+        opacity: 0.6;
+      }
+      @keyframes walk {
+        0% { transform: translateX(-10px); }
+        50% { transform: translateX(10px); }
+        100% { transform: translateX(-10px); }
+      }
+      @keyframes leg {
+        from { transform: rotate(8deg); }
+        to { transform: rotate(-8deg); }
+      }
+      @keyframes tail {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(20deg); }
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      @keyframes dots {
+        0% { content: ""; }
+        25% { content: "."; }
+        50% { content: ".."; }
+        75% { content: "..."; }
+        100% { content: ""; }
+      }
+      @keyframes liquid {
+        0% { transform: translateX(-30%) skewX(6deg); }
+        50% { transform: translateX(30%) skewX(-4deg); }
+        100% { transform: translateX(-30%) skewX(6deg); }
       }
     </style>
   </head>
   <body>
-    <h1>Copper</h1>
-    <div id="status">Signing in...</div>
-    <div id="profile">
+    <header class="panel-header">
+      <img src="copper.png" class="logo" alt="Copper" />
+      <h1>Copper CRM</h1>
+    </header>
+    <div id="home" class="home-view">
+      <div class="home-card">
+        <div class="home-row">
+          <div class="home-label">Email Reminders</div>
+          <div class="home-value">No Email Reminders</div>
+        </div>
+        <div class="home-row">
+          <div class="home-label">Upcoming Tasks</div>
+          <div class="home-value">No Tasks</div>
+        </div>
+      </div>
+    </div>
+    <div id="profile" class="profile-view">
+      <div id="loading" class="loading-overlay">
+        <div class="liquid"></div>
+        <div class="loading-content">
+          <div class="cat-walk">
+            <div class="cat-body"></div>
+            <div class="cat-head"></div>
+            <div class="cat-tail"></div>
+            <div class="cat-leg leg-1"></div>
+            <div class="cat-leg leg-2"></div>
+            <div class="cat-leg leg-3"></div>
+            <div class="cat-leg leg-4"></div>
+            <div class="morph-spinner"></div>
+          </div>
+          <div class="loading-text">
+            <span>Loading</span>
+            <span class="dots"></span>
+          </div>
+        </div>
+      </div>
+      <div id="status">Signing in...</div>
       <div id="profile-message"></div>
       <div id="profile-card">
         <div class="profile-header">
           <img id="profile-avatar" class="profile-avatar" alt="" />
-          <div id="profile-name" class="profile-name"></div>
+          <div class="profile-text">
+            <div id="profile-name" class="profile-name"></div>
+            <div id="profile-subtitle" class="profile-subtitle"></div>
+          </div>
         </div>
-        <button id="add-button" class="add-button" type="button">Add To Copper</button>
+        <div id="profile-form" class="profile-form">
+          <label class="field">
+            <span class="detail-label">Name</span>
+            <input id="field-name" class="field-input" type="text" />
+          </label>
+          <label class="field">
+            <span class="detail-label">Job Title</span>
+            <input id="field-job-title" class="field-input" type="text" />
+          </label>
+          <label class="field">
+            <span class="detail-label">Company</span>
+            <input id="field-company" class="field-input" type="text" />
+          </label>
+          <label class="field">
+            <span class="detail-label">LinkedIn</span>
+            <input id="field-linkedin" class="field-input" type="text" />
+          </label>
+          <label class="field">
+            <span class="detail-label">Profile Photo URL</span>
+            <input id="field-avatar" class="field-input" type="text" />
+          </label>
+        </div>
         <div class="divider"></div>
-        <div id="profile-details"></div>
+        <div class="button-row">
+          <button id="add-button" class="add-button" type="button">Add To Copper</button>
+          <button id="update-button" class="add-button" type="button">Update in Copper</button>
+        </div>
       </div>
     </div>
     <script src="sidepanel.js"></script>

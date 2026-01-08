@@ -8,14 +8,31 @@ const profileMessageEl = document.getElementById("profile-message");
 const profileCardEl = document.getElementById("profile-card");
 const profileAvatarEl = document.getElementById("profile-avatar");
 const profileNameEl = document.getElementById("profile-name");
-const profileDetailsEl = document.getElementById("profile-details");
+const profileSubtitleEl = document.getElementById("profile-subtitle");
+const loadingEl = document.getElementById("loading");
+const homeEl = document.getElementById("home");
+const profileEl = document.getElementById("profile");
 const addButtonEl = document.getElementById("add-button");
+const updateButtonEl = document.getElementById("update-button");
+const fieldNameEl = document.getElementById("field-name");
+const fieldJobTitleEl = document.getElementById("field-job-title");
+const fieldCompanyEl = document.getElementById("field-company");
+const fieldLinkedinEl = document.getElementById("field-linkedin");
+const fieldAvatarEl = document.getElementById("field-avatar");
 
 let cachedToken = null;
 let cachedTokenExp = 0;
 let cachedApiBaseUrl = null;
 let cachedGoogleClientId = null;
 let isAuthorized = false;
+let autoUpdateEnabled = false;
+let lastProfileUrl = "";
+let pollTimerId = null;
+let previewPollTimerId = null;
+let lastPreviewKey = "";
+let lastAutoSyncKey = "";
+let currentPreview = null;
+let currentLinkedinUrl = "";
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -27,11 +44,64 @@ function setProfileMessage(message) {
 }
 
 function setAddButtonVisible(visible) {
+  if (!addButtonEl) return;
   addButtonEl.style.display = visible ? "block" : "none";
 }
 
-function setProfileHeader(name, avatarUrl) {
+function setUpdateButtonVisible(visible) {
+  if (!updateButtonEl) return;
+  updateButtonEl.style.display = visible ? "block" : "none";
+}
+
+function setActionButtons(found) {
+  setAddButtonVisible(!found);
+  setUpdateButtonVisible(Boolean(found));
+}
+
+function activateHomeView() {
+  if (homeEl) homeEl.style.display = "block";
+  if (profileEl) profileEl.style.display = "none";
+}
+
+function activateProfileView() {
+  if (homeEl) homeEl.style.display = "none";
+  if (profileEl) profileEl.style.display = "block";
+}
+
+function showLoading() {
+  if (!loadingEl) return;
+  requestAnimationFrame(() => {
+    loadingEl.classList.add("is-visible");
+  });
+}
+
+function hideLoading() {
+  if (!loadingEl) return;
+  loadingEl.classList.remove("is-visible");
+}
+
+function isProfileReady() {
+  const name = getInputValue(fieldNameEl);
+  const jobTitle = getInputValue(fieldJobTitleEl);
+  const company = getInputValue(fieldCompanyEl);
+  const linkedinUrl = getInputValue(fieldLinkedinEl);
+  return Boolean(name && jobTitle && company && linkedinUrl);
+}
+
+function updateLoadingState() {
+  if (isProfileReady()) {
+    hideLoading();
+  } else {
+    showLoading();
+  }
+}
+
+function setProfileHeader(name, subtitle, avatarUrl) {
   profileNameEl.textContent = name || "LinkedIn Profile";
+  if (profileSubtitleEl) {
+    profileSubtitleEl.textContent = subtitle || "";
+    profileSubtitleEl.style.display = subtitle ? "block" : "none";
+  }
   if (avatarUrl) {
     profileAvatarEl.src = avatarUrl;
     profileAvatarEl.style.visibility = "visible";
@@ -41,69 +111,162 @@ function setProfileHeader(name, avatarUrl) {
   }
 }
 
-function clearDetails() {
-  profileDetailsEl.textContent = "";
+function setInputValue(element, value) {
+  if (!element) return;
+  element.value = value || "";
 }
 
-function addDetail(label, value) {
-  const section = document.createElement("div");
-  section.className = "detail-section";
-  const labelEl = document.createElement("div");
-  labelEl.className = "detail-label";
-  labelEl.textContent = label;
-  const valueEl = document.createElement("div");
-  valueEl.className = "detail-value";
-  valueEl.textContent = value;
-  section.appendChild(labelEl);
-  section.appendChild(valueEl);
-  profileDetailsEl.appendChild(section);
+function getInputValue(element) {
+  if (!element) return "";
+  return (element.value || "").trim();
 }
 
-function addLinkDetail(label, value) {
-  const section = document.createElement("div");
-  section.className = "detail-section";
-  const labelEl = document.createElement("div");
-  labelEl.className = "detail-label";
-  labelEl.textContent = label;
-  const valueEl = document.createElement("a");
-  valueEl.className = "detail-value detail-link";
-  valueEl.href = value;
-  valueEl.target = "_blank";
-  valueEl.rel = "noreferrer";
-  valueEl.textContent = value;
-  section.appendChild(labelEl);
-  section.appendChild(valueEl);
-  profileDetailsEl.appendChild(section);
+function setFormValues(data, linkedinUrl, preview) {
+  const name = data?.name || preview?.name || "";
+  const jobTitle = data?.occupation || preview?.jobTitle || "";
+  const company = data?.company || preview?.company || "";
+  const url = data?.linkedin_url || linkedinUrl || preview?.linkedinUrl || "";
+  const avatarUrl = preview?.avatarUrl || data?.avatar_url || "";
+
+  setInputValue(fieldNameEl, name);
+  setInputValue(fieldJobTitleEl, jobTitle);
+  setInputValue(fieldCompanyEl, company);
+  setInputValue(fieldLinkedinEl, url);
+  setInputValue(fieldAvatarEl, avatarUrl);
 }
 
-function renderDetails(data, linkedinUrl, preview) {
-  clearDetails();
-  const jobTitle = data?.occupation || preview?.jobTitle;
-  const employmentType = preview?.employmentType;
-  const company = data?.company || preview?.company;
+function buildPreviewKey(preview) {
+  if (!preview) return "";
+  return [
+    preview.name,
+    preview.avatarUrl,
+    preview.jobTitle,
+    preview.company,
+    preview.employmentType,
+  ]
+    .map((value) => value || "")
+    .join("|");
+}
 
-  if (jobTitle) {
-    addDetail("Job Title", jobTitle);
+function buildLeadPayload(preview, linkedinUrl, source, createIfMissing) {
+  return {
+    url: linkedinUrl,
+    name: preview?.name || "",
+    jobTitle: preview?.jobTitle || "",
+    company: preview?.company || "",
+    avatarUrl: preview?.avatarUrl || "",
+    source,
+    createIfMissing,
+  };
+}
+
+function hasLeadPayloadData(payload) {
+  return Boolean(
+    payload?.url &&
+      (payload?.name ||
+        payload?.jobTitle ||
+        payload?.company ||
+        payload?.avatarUrl)
+  );
+}
+
+function buildLeadPayloadFromFields(source, createIfMissing) {
+  return {
+    url: getInputValue(fieldLinkedinEl) || currentLinkedinUrl || "",
+    name: getInputValue(fieldNameEl),
+    jobTitle: getInputValue(fieldJobTitleEl),
+    company: getInputValue(fieldCompanyEl),
+    avatarUrl: getInputValue(fieldAvatarEl),
+    source,
+    createIfMissing,
+  };
+}
+
+function updateProfileView(data, linkedinUrl, preview) {
+  const name = data?.name || preview?.name || "";
+  const company = data?.company || preview?.company || "";
+  const avatarUrl = preview?.avatarUrl || data?.avatar_url || "";
+  setProfileMessage("");
+  setProfileHeader(name, company, avatarUrl);
+  setActionButtons(Boolean(data?.found));
+  setFormValues(data?.found ? data : null, linkedinUrl, preview);
+  lastPreviewKey = buildPreviewKey(preview);
+  updateLoadingState();
+}
+
+async function upsertLead(apiBaseUrl, token, payload) {
+  const response = await fetch(`${apiBaseUrl}/extension/lead`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const data = await response.json();
+      detail = data.detail || data.error || JSON.stringify(data);
+    } catch (error) {
+      detail = await response.text();
+    }
+    throw new Error(detail || "Failed to save lead");
   }
-  if (employmentType) {
-    addDetail("Employment", employmentType);
+
+  return response.json();
+}
+
+async function maybeAutoSync(data, preview, linkedinUrl) {
+  if (!autoUpdateEnabled) return;
+  if (!data?.found || !preview || !linkedinUrl) return;
+  if (!cachedApiBaseUrl || !cachedGoogleClientId) return;
+
+  const payload = buildLeadPayload(preview, linkedinUrl, "extension:auto", false);
+  if (!hasLeadPayloadData(payload)) return;
+
+  const key = `${linkedinUrl}|${buildPreviewKey(preview)}`;
+  if (!key || key === lastAutoSyncKey) return;
+  lastAutoSyncKey = key;
+
+  try {
+    const token = await getIdToken(cachedGoogleClientId);
+    const result = await upsertLead(cachedApiBaseUrl, token, payload);
+    if (result?.found) {
+      updateProfileView(result, linkedinUrl, preview);
+    }
+  } catch (error) {
+    // Ignore auto-sync failures.
   }
-  if (linkedinUrl) {
-    addLinkDetail("LinkedIn", linkedinUrl);
+}
+
+function stopPreviewPolling() {
+  if (previewPollTimerId) {
+    clearInterval(previewPollTimerId);
+    previewPollTimerId = null;
   }
-  if (company) {
-    const section = document.createElement("div");
-    section.className = "detail-section";
-    const labelEl = document.createElement("div");
-    labelEl.className = "detail-label";
-    labelEl.textContent = "Company Info";
-    const valueEl = document.createElement("div");
-    valueEl.className = "detail-value";
-    valueEl.textContent = `Name: ${company}`;
-    section.appendChild(labelEl);
-    section.appendChild(valueEl);
-    profileDetailsEl.appendChild(section);
-  }
+}
+
+function startPreviewPolling(tabId, linkedinUrl, data) {
+  stopPreviewPolling();
+  let attempts = 0;
+  const maxAttempts = 8;
+  const intervalMs = 750;
+  previewPollTimerId = setInterval(async () => {
+    attempts += 1;
+    if (attempts > maxAttempts || lastProfileUrl !== linkedinUrl) {
+      stopPreviewPolling();
+      return;
+    }
+    const preview = await fetchProfilePreview(tabId);
+    if (!preview) return;
+    const key = buildPreviewKey(preview);
+    if (!key || key === lastPreviewKey) return;
+    currentPreview = preview;
+    updateProfileView(data, linkedinUrl, preview);
+    await maybeAutoSync(data, preview, linkedinUrl);
+  }, intervalMs);
 }
 
 function decodeJwt(token) {
@@ -284,22 +447,53 @@ async function refreshProfile() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const url = tab?.url || "";
     if (!isLinkedInProfileUrl(url)) {
+      lastProfileUrl = "";
+      currentPreview = null;
+      currentLinkedinUrl = "";
+      activateHomeView();
       setProfileMessage("Open a LinkedIn profile to see CRM data.");
+      setStatus("Visit a LinkedIn profile to sync.");
+      hideLoading();
       return;
     }
 
+    activateProfileView();
+    showLoading();
     const preview = await fetchProfilePreview(tab?.id);
-    const linkedinUrl = preview?.linkedinUrl || url;
+    const linkedinUrl = url;
+    lastProfileUrl = url;
+    currentPreview = preview;
+    currentLinkedinUrl = linkedinUrl;
 
     const token = await getIdToken(cachedGoogleClientId);
     const data = await fetchProfile(cachedApiBaseUrl, token, linkedinUrl);
-    const name = data?.name || preview?.name || "";
-    setProfileMessage("");
-    setProfileHeader(name, preview?.avatarUrl);
-    setAddButtonVisible(!data?.found);
-    renderDetails(data?.found ? data : null, linkedinUrl, preview);
+    updateProfileView(data, linkedinUrl, preview);
+    startPreviewPolling(tab?.id, linkedinUrl, data);
+    await maybeAutoSync(data, preview, linkedinUrl);
+    hideLoading();
   } catch (error) {
     setProfileMessage("Error loading CRM data.");
+    hideLoading();
+  }
+}
+
+async function pollForProfileChange() {
+  if (!isAuthorized || !chrome.tabs?.query) {
+    return;
+  }
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const url = tab?.url || "";
+    if (!isLinkedInProfileUrl(url)) {
+      lastProfileUrl = "";
+      stopPreviewPolling();
+      return;
+    }
+    if (url !== lastProfileUrl) {
+      await refreshProfile();
+    }
+  } catch (error) {
+    // Ignore polling errors.
   }
 }
 
@@ -313,9 +507,13 @@ async function init() {
     const config = await fetchBackendConfig(apiBaseUrl);
     cachedApiBaseUrl = apiBaseUrl;
     cachedGoogleClientId = config.google_client_id;
+    autoUpdateEnabled = Boolean(config.extension_auto_update);
     const token = await getIdToken(cachedGoogleClientId);
     isAuthorized = await verifyWithBackend(apiBaseUrl, token);
     await refreshProfile();
+    if (!pollTimerId) {
+      pollTimerId = setInterval(pollForProfileChange, 1500);
+    }
   } catch (error) {
     setStatus(`Error: ${error?.message || "Unknown error"}`);
     setProfileMessage("");
@@ -323,6 +521,55 @@ async function init() {
 }
 
 init();
+
+if (addButtonEl) {
+  addButtonEl.addEventListener("click", async () => {
+    if (!cachedApiBaseUrl || !cachedGoogleClientId) return;
+    const payload = buildLeadPayloadFromFields("extension:add", true);
+    if (!hasLeadPayloadData(payload)) return;
+    try {
+      const token = await getIdToken(cachedGoogleClientId);
+      const result = await upsertLead(cachedApiBaseUrl, token, payload);
+      if (result?.found) {
+        updateProfileView(result, currentLinkedinUrl, currentPreview);
+      }
+    } catch (error) {
+      setProfileMessage("Error saving to CRM.");
+    }
+  });
+}
+
+if (updateButtonEl) {
+  updateButtonEl.addEventListener("click", async () => {
+    if (!cachedApiBaseUrl || !cachedGoogleClientId) return;
+    const payload = buildLeadPayloadFromFields("extension:update", false);
+    if (!hasLeadPayloadData(payload)) return;
+    try {
+      const token = await getIdToken(cachedGoogleClientId);
+      const result = await upsertLead(cachedApiBaseUrl, token, payload);
+      if (result?.found) {
+        updateProfileView(result, currentLinkedinUrl, currentPreview);
+      } else {
+        setProfileMessage("Lead not found in CRM.");
+      }
+    } catch (error) {
+      setProfileMessage("Error updating CRM.");
+    }
+  });
+}
+
+function syncHeaderFromFields() {
+  const name = getInputValue(fieldNameEl) || "LinkedIn Profile";
+  const company = getInputValue(fieldCompanyEl);
+  const avatarUrl = getInputValue(fieldAvatarEl);
+  setProfileHeader(name, company, avatarUrl);
+  updateLoadingState();
+}
+
+[fieldNameEl, fieldCompanyEl, fieldAvatarEl].forEach((element) => {
+  if (!element) return;
+  element.addEventListener("input", syncHeaderFromFields);
+});
 
 if (chrome.tabs?.onActivated) {
   chrome.tabs.onActivated.addListener(() => {

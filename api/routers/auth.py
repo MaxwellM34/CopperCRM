@@ -35,4 +35,9 @@ async def verify_user(email: str = Depends(get_google_email)):
 async def auth_config(request: Request):
     server_url = getattr(Config, "SERVER_URL", None) or str(request.base_url).rstrip("/")
     google_client_id = getattr(Config, "GOOGLE_AUDIENCE", None)
-    return {"server_url": server_url, "google_client_id": google_client_id}
+    extension_auto_update = bool(getattr(Config, "EXTENSION_AUTO_UPDATE", False))
+    return {
+        "server_url": server_url,
+        "google_client_id": google_client_id,
+        "extension_auto_update": extension_auto_update,
+    }

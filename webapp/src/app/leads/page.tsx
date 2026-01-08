@@ -15,6 +15,7 @@ type LeadRow = {
   gender?: string | null;
   first_name?: string | null;
   last_name?: string | null;
+  avatar_url?: string | null;
   company_id?: number | null;
   company_name?: string | null;
   job_title?: string | null;
@@ -96,7 +97,8 @@ function LeadRowItem({ lead }: { lead: LeadRow }) {
   const contactEmail = lead.work_email || lead.email || "";
   const gender = (lead.gender || "unknown_gender").toLowerCase();
   const avatar =
-    gender === "female" ? "/femaleAvatar.png" : gender === "male" ? "/maleAvatar.png" : "/unspecifiedAvatar.png";
+    lead.avatar_url ||
+    (gender === "female" ? "/femaleAvatar.png" : gender === "male" ? "/maleAvatar.png" : "/unspecifiedAvatar.png");
 
   const countryCode = useMemo(() => {
     const code = lead.country ? getCode(lead.country) : null;

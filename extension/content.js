@@ -1,8 +1,10 @@
 function getCanonicalUrl() {
-  return (
-    document.querySelector("link[rel='canonical']")?.href ||
-    window.location.href.split("?")[0]
-  );
+  const href = window.location.href.split("?")[0];
+  const path = window.location.pathname.toLowerCase();
+  if (path.startsWith("/in/") || path.startsWith("/pub/")) {
+    return href;
+  }
+  return document.querySelector("link[rel='canonical']")?.href || href;
 }
 
 function normalizeText(value) {
@@ -56,6 +58,21 @@ function getTopExperienceItems(section) {
   );
 }
 
+function getEntityContainer(item) {
+  if (!item) return null;
+  return (
+    item.querySelector(":scope > div[data-view-name='profile-component-entity']") || item
+  );
+}
+
+function getHeaderRow(container) {
+  if (!container) return null;
+  return (
+    container.querySelector(":scope .display-flex.flex-row.justify-space-between") ||
+    container
+  );
+}
+
 function getBoldText(container, excluded) {
   return getTextFromSelector(
     container,
@@ -67,7 +84,7 @@ function getBoldText(container, excluded) {
 function getCompanyLinkText(container, excluded) {
   return getTextFromSelector(
     container,
-    "a[href*='/company/'] span[aria-hidden='true'], a[href*='/company/'] span.visually-hidden",
+    "a[href*='/company/'] span.t-14.t-normal span[aria-hidden='true'], a[href*='/company/'] span.t-14.t-normal",
     excluded
   );
 }
@@ -75,7 +92,7 @@ function getCompanyLinkText(container, excluded) {
 function getCompanyLineText(container, excluded) {
   return getTextFromSelector(
     container,
-    "span.t-14.t-normal span[aria-hidden='true'], span.t-14.t-normal",
+    "span.t-14.t-normal:not(.t-black--light) span[aria-hidden='true'], span.t-14.t-normal:not(.t-black--light)",
     excluded
   );
 }
@@ -85,21 +102,6 @@ function getDateLineText(container) {
     container.querySelector("span.t-14.t-normal.t-black--light span[aria-hidden='true']") ||
     container.querySelector("span.t-14.t-normal.t-black--light");
   return getTextFromElement(el);
-}
-
-function getRoleAnchor(container) {
-  if (!container) return null;
-  const anchors = Array.from(
-    container.querySelectorAll("a.optional-action-target-wrapper")
-  );
-  if (anchors.length) {
-    const nonExperience = anchors.find((anchor) => {
-      const field = anchor.getAttribute("data-field") || "";
-      return !field.startsWith("experience_");
-    });
-    return nonExperience || anchors[0];
-  }
-  return container.querySelector("a[href*='/company/']");
 }
 
 function splitCompanyAndEmployment(text) {
@@ -117,18 +119,23 @@ function isCurrentRole(dateText) {
 }
 
 function findNestedRoleList(item) {
-  const lists = Array.from(item.querySelectorAll(":scope ul"));
+  const scopedLists = Array.from(
+    item.querySelectorAll(":scope .pvs-entity__sub-components > ul")
+  );
+  const lists = scopedLists.length
+    ? scopedLists
+    : Array.from(item.querySelectorAll(":scope ul"));
   for (const list of lists) {
     const roleItems = Array.from(list.children).filter((el) => el.tagName === "LI");
     if (!roleItems.length) continue;
-    const hasExperienceField = roleItems.some((role) =>
-      role.querySelector("a[data-field^='experience_']")
+    const hasEntity = roleItems.some((role) =>
+      role.querySelector(":scope > div[data-view-name='profile-component-entity']")
     );
-    if (hasExperienceField) continue;
-    const hasTitle = roleItems.some((role) => getBoldText(role));
-    if (hasTitle) {
-      return { list, roleItems };
-    }
+    if (!hasEntity) continue;
+    const hasTitle = roleItems.some((role) =>
+      getBoldText(getHeaderRow(getEntityContainer(role)))
+    );
+    if (hasTitle) return { list, roleItems };
   }
   return null;
 }
@@ -146,29 +153,33 @@ function getExperienceEntries() {
 
   items.forEach((item) => {
     const nestedRoles = findNestedRoleList(item);
+    const entity = getEntityContainer(item);
+    const headerRow = getHeaderRow(entity);
+    const headerScope = headerRow || entity || item;
     if (nestedRoles) {
       const company =
-        getBoldText(item, nestedRoles.list) ||
-        getCompanyLinkText(item, nestedRoles.list) ||
-        splitCompanyAndEmployment(getCompanyLineText(getRoleAnchor(item) || item, nestedRoles.list)).company;
+        getBoldText(headerScope, nestedRoles.list) ||
+        getCompanyLinkText(headerScope, nestedRoles.list) ||
+        "";
       nestedRoles.roleItems.forEach((nested) => {
-        const title = getBoldText(nested);
-        const roleAnchor = getRoleAnchor(nested) || nested;
-        const employmentType = getCompanyLineText(roleAnchor);
-        const dateText = getDateLineText(roleAnchor);
+        const nestedEntity = getEntityContainer(nested);
+        const nestedHeader = getHeaderRow(nestedEntity);
+        const nestedScope = nestedHeader || nestedEntity || nested;
+        const title = getBoldText(nestedScope);
+        const employmentType = getCompanyLineText(nestedScope);
+        const dateText = getDateLineText(nestedScope);
         if (!title) return;
         entries.push({ title, company, employmentType, dateText });
       });
       return;
     }
 
-    const title = getBoldText(item);
-    const roleAnchor = getRoleAnchor(item) || item;
-    const companyLine = getCompanyLineText(roleAnchor);
+    const title = getBoldText(headerScope);
+    const companyLine = getCompanyLineText(headerScope);
     const split = splitCompanyAndEmployment(companyLine);
-    const company = split.company || getCompanyLinkText(item);
+    const company = split.company || getCompanyLinkText(headerScope);
     const employmentType = split.employmentType;
-    const dateText = getDateLineText(roleAnchor);
+    const dateText = getDateLineText(headerScope);
     if (!title && !company) return;
     entries.push({ title, company, employmentType, dateText });
   });

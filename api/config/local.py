@@ -16,6 +16,13 @@ class LocalConfig(BaseConfig):
     DEBUG_AUTH = os.getenv("DEBUG_AUTH", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
     OFFLINE_MODE = os.getenv("OFFLINE_MODE", "false").strip().lower() in {"1", "true", "yes", "y", "on"}
     OFFLINE_ADMIN_EMAIL = os.getenv("OFFLINE_ADMIN_EMAIL", "devadmin@example.com")
+    EXTENSION_AUTO_UPDATE = os.getenv("EXTENSION_AUTO_UPDATE", "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "y",
+        "on",
+    }
 
     DB_URL = f"postgres://{PG_USER}:{PG_PASS}@{PG_HOST}:{PG_PORT}/{PG_DB}"
 

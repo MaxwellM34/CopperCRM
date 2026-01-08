@@ -26,6 +26,8 @@ class Lead(models.Model):
         null=True,
         on_delete=fields.SET_NULL,
     )
+    created_source = fields.CharField(max_length=50, null=True)
+    updated_source = fields.CharField(max_length=50, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
     work_email_status = fields.CharField(max_length=20, null=True)
@@ -38,6 +40,7 @@ class Lead(models.Model):
     person_address = fields.CharField(max_length=255, null=True)
     country = fields.CharField(max_length=100, null=True)
     personal_linkedin = fields.CharField(max_length=255, null=True)
+    avatar_url = fields.CharField(max_length=1024, null=True)
     seniority = fields.CharField(max_length=255, null=True)
     departments = fields.CharField(max_length=255, null=True)
     industries = fields.CharField(max_length=255, null=True)
