@@ -73,10 +73,35 @@
       .detail-section {
         margin-bottom: 12px;
       }
+      .profile-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
       .detail-label {
         font-size: 12px;
         font-weight: 600;
         color: #444;
+      }
+      .field-input {
+        font-size: 14px;
+        padding: 8px 10px;
+        border: 1px solid #d0d0d0;
+        border-radius: 6px;
+      }
+      .field-input:focus {
+        outline: none;
+        border-color: #888;
+      }
+      .button-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       }
       .detail-value {
         font-size: 14px;
@@ -103,9 +128,33 @@
             <div id="profile-subtitle" class="profile-subtitle"></div>
           </div>
         </div>
-        <button id="add-button" class="add-button" type="button">Add To Copper</button>
+        <div id="profile-form" class="profile-form">
+          <label class="field">
+            <span class="detail-label">Name</span>
+            <input id="field-name" class="field-input" type="text" />
+          </label>
+          <label class="field">
+            <span class="detail-label">Job Title</span>
+            <input id="field-job-title" class="field-input" type="text" />
+          </label>
+          <label class="field">
+            <span class="detail-label">Company</span>
+            <input id="field-company" class="field-input" type="text" />
+          </label>
+          <label class="field">
+            <span class="detail-label">LinkedIn</span>
+            <input id="field-linkedin" class="field-input" type="text" />
+          </label>
+          <label class="field">
+            <span class="detail-label">Profile Photo URL</span>
+            <input id="field-avatar" class="field-input" type="text" />
+          </label>
+        </div>
         <div class="divider"></div>
-        <div id="profile-details"></div>
+        <div class="button-row">
+          <button id="add-button" class="add-button" type="button">Add To Copper</button>
+          <button id="update-button" class="add-button" type="button">Update in Copper</button>
+        </div>
       </div>
     </div>
     <script src="sidepanel.js"></script>
