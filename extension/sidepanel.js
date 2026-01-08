@@ -69,11 +69,31 @@ function activateProfileView() {
 }
 
 function showLoading() {
-  if (loadingEl) loadingEl.classList.remove("hidden");
+  if (!loadingEl) return;
+  requestAnimationFrame(() => {
+    loadingEl.classList.add("is-visible");
+  });
 }
 
 function hideLoading() {
-  if (loadingEl) loadingEl.classList.add("hidden");
+  if (!loadingEl) return;
+  loadingEl.classList.remove("is-visible");
+}
+
+function isProfileReady() {
+  const name = getInputValue(fieldNameEl);
+  const jobTitle = getInputValue(fieldJobTitleEl);
+  const company = getInputValue(fieldCompanyEl);
+  const linkedinUrl = getInputValue(fieldLinkedinEl);
+  return Boolean(name && jobTitle && company && linkedinUrl);
+}
+
+function updateLoadingState() {
+  if (isProfileReady()) {
+    hideLoading();
+  } else {
+    showLoading();
+  }
 }
 
 function setProfileHeader(name, subtitle, avatarUrl) {
@@ -171,6 +191,7 @@ function updateProfileView(data, linkedinUrl, preview) {
   setActionButtons(Boolean(data?.found));
   setFormValues(data?.found ? data : null, linkedinUrl, preview);
   lastPreviewKey = buildPreviewKey(preview);
+  updateLoadingState();
 }
 
 async function upsertLead(apiBaseUrl, token, payload) {
@@ -542,6 +563,7 @@ function syncHeaderFromFields() {
   const company = getInputValue(fieldCompanyEl);
   const avatarUrl = getInputValue(fieldAvatarEl);
   setProfileHeader(name, company, avatarUrl);
+  updateLoadingState();
 }
 
 [fieldNameEl, fieldCompanyEl, fieldAvatarEl].forEach((element) => {

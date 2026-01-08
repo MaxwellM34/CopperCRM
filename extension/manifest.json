@@ -8,6 +8,12 @@
   "action": {
     "default_title": "Copper"
   },
+  "icons": {
+    "16": "copper.png",
+    "32": "copper.png",
+    "48": "copper.png",
+    "128": "copper.png"
+  },
   "side_panel": {
     "default_path": "sidepanel.html"
   },
