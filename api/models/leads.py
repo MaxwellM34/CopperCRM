@@ -53,6 +53,7 @@ class Lead(models.Model):
 class Company(models.Model):
     id = fields.IntField(pk=True)
     company_name = fields.CharField(max_length=255)
+    linkedin_url = fields.CharField(max_length=255, null=True)
     created_by = fields.ForeignKeyField(
         "models.User",
         related_name="created_companies",

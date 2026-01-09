@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from auth.authenticate import authenticate
 from models import Company, Lead, User
+from services.company_matcher import find_company_match, normalize_company_linkedin_url
 from services.linkedin_lookup import find_lead_by_linkedin, lead_to_profile, normalize_linkedin_url
 
 router = APIRouter(prefix="/extension", tags=["extension"])
@@ -36,6 +37,7 @@ class ExtensionUpsertRequest(BaseModel):
     name: Optional[str] = None
     job_title: Optional[str] = Field(default=None, alias="jobTitle")
     company: Optional[str] = None
+    company_linkedin_url: Optional[str] = Field(default=None, alias="companyLinkedinUrl")
     avatar_url: Optional[str] = Field(default=None, alias="avatarUrl")
     source: Optional[str] = None
     create_if_missing: bool = Field(default=True, alias="createIfMissing")
@@ -127,17 +129,24 @@ async def upsert_lead(
     name = _clean(payload.name)
     job_title = _clean(payload.job_title)
     company_name = _clean(payload.company)
+    company_linkedin_url = _clean(payload.company_linkedin_url)
     avatar_url = _clean(payload.avatar_url)
 
     company_obj = None
-    if company_name:
-        company_obj = await Company.filter(company_name__iexact=company_name).first()
-        if company_obj is None:
+    normalized_company_url = normalize_company_linkedin_url(company_linkedin_url)
+    if company_name or normalized_company_url:
+        company_obj = await find_company_match(company_name, normalized_company_url)
+        if company_obj is None and company_name:
             company_obj = await Company.create(
                 company_name=company_name,
+                linkedin_url=normalized_company_url,
                 created_by=user,
                 updated_by=user,
             )
+        elif company_obj and normalized_company_url and not company_obj.linkedin_url:
+            setattr(company_obj, "linkedin_url", normalized_company_url)
+            company_obj.updated_by = user
+            await company_obj.save()
 
     lead = await find_lead_by_linkedin(normalized_url)
     if lead is None and not payload.create_if_missing:
@@ -176,7 +185,7 @@ async def upsert_lead(
             changed = True
         if changed:
             lead.updated_by = user
-            lead.updated_source = source
+            setattr(lead, "updated_source", source)
             await lead.save()
             updated = True
 
@@ -185,6 +194,6 @@ async def upsert_lead(
         found=True,
         created=created,
         updated=updated,
-        lead_id=lead.id,
+        lead_id=lead.id,  # type: ignore[assignment]
         **profile,
     )
