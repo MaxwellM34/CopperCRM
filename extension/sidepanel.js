@@ -17,6 +17,7 @@ const updateButtonEl = document.getElementById("update-button");
 const fieldNameEl = document.getElementById("field-name");
 const fieldJobTitleEl = document.getElementById("field-job-title");
 const fieldCompanyEl = document.getElementById("field-company");
+const fieldCompanyLinkedinEl = document.getElementById("field-company-linkedin");
 const fieldLinkedinEl = document.getElementById("field-linkedin");
 const fieldAvatarEl = document.getElementById("field-avatar");
 
@@ -127,10 +128,12 @@ function setFormValues(data, linkedinUrl, preview) {
   const company = data?.company || preview?.company || "";
   const url = data?.linkedin_url || linkedinUrl || preview?.linkedinUrl || "";
   const avatarUrl = preview?.avatarUrl || data?.avatar_url || "";
+  const companyLinkedinUrl = preview?.companyLinkedinUrl || "";
 
   setInputValue(fieldNameEl, name);
   setInputValue(fieldJobTitleEl, jobTitle);
   setInputValue(fieldCompanyEl, company);
+  setInputValue(fieldCompanyLinkedinEl, companyLinkedinUrl);
   setInputValue(fieldLinkedinEl, url);
   setInputValue(fieldAvatarEl, avatarUrl);
 }
@@ -143,6 +146,7 @@ function buildPreviewKey(preview) {
     preview.jobTitle,
     preview.company,
     preview.employmentType,
+    preview.companyLinkedinUrl,
   ]
     .map((value) => value || "")
     .join("|");
@@ -154,6 +158,7 @@ function buildLeadPayload(preview, linkedinUrl, source, createIfMissing) {
     name: preview?.name || "",
     jobTitle: preview?.jobTitle || "",
     company: preview?.company || "",
+    companyLinkedinUrl: preview?.companyLinkedinUrl || "",
     avatarUrl: preview?.avatarUrl || "",
     source,
     createIfMissing,
@@ -176,6 +181,7 @@ function buildLeadPayloadFromFields(source, createIfMissing) {
     name: getInputValue(fieldNameEl),
     jobTitle: getInputValue(fieldJobTitleEl),
     company: getInputValue(fieldCompanyEl),
+    companyLinkedinUrl: getInputValue(fieldCompanyLinkedinEl),
     avatarUrl: getInputValue(fieldAvatarEl),
     source,
     createIfMissing,

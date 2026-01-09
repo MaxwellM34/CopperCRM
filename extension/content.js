@@ -89,6 +89,19 @@ function getCompanyLinkText(container, excluded) {
   );
 }
 
+function getCompanyLinkUrl(container, excluded) {
+  if (!container) return "";
+  const anchors = Array.from(container.querySelectorAll("a[href*='/company/']"));
+  for (const anchor of anchors) {
+    if (excluded && excluded.contains(anchor)) continue;
+    const href = anchor.getAttribute("href") || "";
+    if (href) {
+      return href.split("?")[0];
+    }
+  }
+  return "";
+}
+
 function getCompanyLineText(container, excluded) {
   return getTextFromSelector(
     container,
@@ -161,6 +174,7 @@ function getExperienceEntries() {
         getBoldText(headerScope, nestedRoles.list) ||
         getCompanyLinkText(headerScope, nestedRoles.list) ||
         "";
+      const companyLinkedinUrl = getCompanyLinkUrl(headerScope, nestedRoles.list);
       nestedRoles.roleItems.forEach((nested) => {
         const nestedEntity = getEntityContainer(nested);
         const nestedHeader = getHeaderRow(nestedEntity);
@@ -169,7 +183,13 @@ function getExperienceEntries() {
         const employmentType = getCompanyLineText(nestedScope);
         const dateText = getDateLineText(nestedScope);
         if (!title) return;
-        entries.push({ title, company, employmentType, dateText });
+        entries.push({
+          title,
+          company,
+          employmentType,
+          dateText,
+          companyLinkedinUrl,
+        });
       });
       return;
     }
@@ -180,8 +200,15 @@ function getExperienceEntries() {
     const company = split.company || getCompanyLinkText(headerScope);
     const employmentType = split.employmentType;
     const dateText = getDateLineText(headerScope);
+    const companyLinkedinUrl = getCompanyLinkUrl(headerScope);
     if (!title && !company) return;
-    entries.push({ title, company, employmentType, dateText });
+    entries.push({
+      title,
+      company,
+      employmentType,
+      dateText,
+      companyLinkedinUrl,
+    });
   });
 
   return entries;
@@ -199,10 +226,18 @@ function joinUnique(values) {
   return result.join(" | ");
 }
 
+function firstNonEmpty(values) {
+  for (const value of values) {
+    const text = normalizeText(value);
+    if (text) return text;
+  }
+  return "";
+}
+
 function getExperiencePreview() {
   const entries = getExperienceEntries();
   if (!entries.length) {
-    return { jobTitle: "", company: "", employmentType: "" };
+    return { jobTitle: "", company: "", employmentType: "", companyLinkedinUrl: "" };
   }
 
   const currentEntries = entries.filter((entry) => isCurrentRole(entry.dateText));
@@ -212,6 +247,9 @@ function getExperiencePreview() {
     jobTitle: joinUnique(chosen.map((entry) => entry.title)),
     company: joinUnique(chosen.map((entry) => entry.company)),
     employmentType: joinUnique(chosen.map((entry) => entry.employmentType)),
+    companyLinkedinUrl: firstNonEmpty(
+      chosen.map((entry) => entry.companyLinkedinUrl)
+    ),
   };
 }
 
@@ -236,6 +274,7 @@ function getProfilePreview() {
     jobTitle: experience.jobTitle,
     company: experience.company,
     employmentType: experience.employmentType,
+    companyLinkedinUrl: experience.companyLinkedinUrl,
   };
 }
 
