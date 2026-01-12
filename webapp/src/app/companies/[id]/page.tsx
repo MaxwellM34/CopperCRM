@@ -174,7 +174,6 @@ export default function CompanyProfilePage({ params }: { params: { id: string } 
                         <Link href={`/leads/${lead.id}`} className="lead-link">
                           {name}
                         </Link>
-                        <div className="muted text-xs">{lead.job_title || "Role pending"}</div>
                       </div>
                       <div className="muted text-xs">{lead.work_email || lead.email || "n/a"}</div>
                       <div className="muted text-xs">{lead.seniority || "Stage pending"}</div>

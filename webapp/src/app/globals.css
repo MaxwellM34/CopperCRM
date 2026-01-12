@@ -1021,18 +1021,50 @@ a {
 }
 
 .company-leads {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
 .company-lead {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) minmax(0, 0.7fr);
   gap: 12px;
-  padding: 10px 12px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(255, 255, 255, 0.02);
+  align-items: center;
+}
+
+.company-lead > div {
+  min-width: 0;
+}
+
+.company-lead .lead-link,
+.company-lead .muted {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.company-lead .muted:last-child {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .company-lead {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .company-lead .muted {
+    white-space: normal;
+    text-align: left;
+  }
 }
 
 .lead-avatar {

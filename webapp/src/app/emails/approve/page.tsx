@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AppShell from "../../../components/AppShell";
 import { storage } from "../../../lib/storage";
 
@@ -41,7 +41,7 @@ export default function ApproveEmailsPage() {
   const startX = useRef<number | null>(null);
   const dragging = useRef(false);
 
-  const fetchNext = async () => {
+  const fetchNext = useCallback(async () => {
     setStatus("loading");
     setFlash(null);
     try {
@@ -67,11 +67,11 @@ export default function ApproveEmailsPage() {
     } catch {
       /* ignore */
     }
-  };
+  }, [apiBase]);
 
   useEffect(() => {
     fetchNext();
-  }, []);
+  }, [fetchNext]);
 
   const sendDecision = async (decision: "approved" | "rejected") => {
     if (!email || deciding) return;

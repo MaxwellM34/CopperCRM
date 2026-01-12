@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AppShell from "../../../components/AppShell";
 import { storage } from "../../../lib/storage";
 
@@ -41,7 +41,7 @@ export default function EmailGeneratorPage() {
   const selected = Math.min(count ?? pending, pending || 0);
   const estimatedCost = stats ? (stats.average_cost_usd || 0) * (selected || 0) : 0;
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     setLoadingStats(true);
     try {
       const res = await fetch(`${apiBase}/first-emails/stats`);
@@ -52,11 +52,11 @@ export default function EmailGeneratorPage() {
     } finally {
       setLoadingStats(false);
     }
-  };
+  }, [apiBase]);
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
   const startGeneration = async (useAll: boolean) => {
     if (!stats) return;
