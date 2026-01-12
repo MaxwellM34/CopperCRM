@@ -36,7 +36,7 @@ async def create_user(payload: UserCreate):
     return {"id": user.id, "email": user.email}
 
 @router.delete("/delete user", response_model=UserCreate)
-async def deleteuser(payload: UserDelete, user: User = Depends(authenticate)):
+async def delete_user(payload: UserDelete, user: User = Depends(authenticate)):
     if not await User.filter(email=payload.email).exists():
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -46,7 +46,7 @@ async def deleteuser(payload: UserDelete, user: User = Depends(authenticate)):
 
 
 @router.get("/list users", response_model=list[dict])
-async def listuser():
+async def list_user():
     
     return await User.all().values("id", "email")
 
@@ -103,3 +103,10 @@ async def deadminize_user(
         "email": target_user.email,
         "is_admin": target_user.is_admin,
     }
+
+@router.get("/listAdmins" , response_model = list[dict])
+async def list_admins(current_user: User = Depends(authenticate)):
+    return await User.filter(is_admin=True).values("id", "email")
+
+    
+        

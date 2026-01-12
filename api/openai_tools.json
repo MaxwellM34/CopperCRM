@@ -177,8 +177,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Deleteuser",
-        "operationId": "deleteuser_users_delete_user_delete",
+        "summary": "Delete User",
+        "operationId": "delete_user_users_delete_user_delete",
         "requestBody": {
           "content": {
             "application/json": {
@@ -223,8 +223,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Listuser",
-        "operationId": "listuser_users_list_users_get",
+        "summary": "List User",
+        "operationId": "list_user_users_list_users_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -236,7 +236,7 @@
                     "type": "object"
                   },
                   "type": "array",
-                  "title": "Response Listuser Users List Users Get"
+                  "title": "Response List User Users List Users Get"
                 }
               }
             }
@@ -328,6 +328,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/users/listAdmins": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "List Admins",
+        "operationId": "list_admins_users_listAdmins_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "array",
+                  "title": "Response List Admins Users Listadmins Get"
                 }
               }
             }
