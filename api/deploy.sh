@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SERVICE_NAME="${SERVICE_NAME:-crm-api-468831678336}"
+SERVICE_NAME="${SERVICE_NAME:-crm-api}"
 REGION="${REGION:-us-central1}"
 PROJECT_ID="${PROJECT_ID:-crm-mvp-481223}"
 
@@ -43,4 +43,5 @@ gcloud run deploy "$SERVICE_NAME" \
   --region "$REGION" \
   --project "$PROJECT_ID" \
   --allow-unauthenticated \
+  --add-cloudsql-instances "$PG_GCP_PATH" \
   --set-env-vars "$(IFS=,; echo "${env_vars[*]}")"

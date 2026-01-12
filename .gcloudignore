@@ -1,0 +1,15 @@
+.git/
+.env
+api/
+extension/
+mautic/
+webapp/node_modules/
+webapp/.next/
+webapp/.turbo/
+webapp/.vercel/
+webapp/.pnpm-store/
+webapp/.cache/
+webapp/dist/
+webapp/build/
+webapp/out/
+*.log

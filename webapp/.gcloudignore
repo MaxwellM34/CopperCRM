@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.turbo/
+.vercel/
+.pnpm-store/
+.cache/
+dist/
+build/
+out/
+.git/
+*.log

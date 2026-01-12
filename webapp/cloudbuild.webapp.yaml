@@ -19,7 +19,7 @@ steps:
       [
         "run",
         "deploy",
-        "crm-frontend-468831678336",
+        "crm-webapp",
         "--image",
         "us-central1-docker.pkg.dev/crm-mvp-481223/default/crm-frontend:latest",
         "--region",

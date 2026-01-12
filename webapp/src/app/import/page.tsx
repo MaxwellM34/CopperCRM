@@ -32,7 +32,9 @@ export default function ImportPage() {
       const form = new FormData();
       form.append("file", file);
 
-      const headers = token ? { Authorization: "Bearer " + token } : {};
+      const headers: HeadersInit | undefined = token
+        ? { Authorization: "Bearer " + token }
+        : undefined;
       const res = await fetch(apiBase.replace(/\/$/, "") + "/leads/import", {
         method: "POST",
         headers,
