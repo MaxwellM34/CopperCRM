@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SERVICE_NAME="${SERVICE_NAME:-crm-frontend-468831678336}"
-REGION="${REGION:-us-central1}"
 PROJECT_ID="${PROJECT_ID:-crm-mvp-481223}"
-IMAGE="${IMAGE:-us-central1-docker.pkg.dev/${PROJECT_ID}/default/crm-frontend:latest}"
+NEXT_PUBLIC_API_BASE="${NEXT_PUBLIC_API_BASE:-}"
+NEXT_PUBLIC_GOOGLE_CLIENT_ID="${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}"
 
-gcloud builds submit --tag "$IMAGE" .
-
-gcloud run deploy "$SERVICE_NAME" \
-  --image "$IMAGE" \
-  --region "$REGION" \
+gcloud builds submit \
   --project "$PROJECT_ID" \
-  --allow-unauthenticated
+  --config cloudbuild.webapp.yaml \
+  --substitutions "_NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE},_NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}"

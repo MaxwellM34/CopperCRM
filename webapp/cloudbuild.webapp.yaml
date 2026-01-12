@@ -8,6 +8,10 @@ steps:
         "us-central1-docker.pkg.dev/crm-mvp-481223/default/crm-frontend:latest",
         "-f",
         "Dockerfile.webapp",
+        "--build-arg",
+        "NEXT_PUBLIC_API_BASE=${_NEXT_PUBLIC_API_BASE}",
+        "--build-arg",
+        "NEXT_PUBLIC_GOOGLE_CLIENT_ID=${_NEXT_PUBLIC_GOOGLE_CLIENT_ID}",
         ".",
       ]
   - name: gcr.io/cloud-builders/gcloud
@@ -26,3 +30,6 @@ steps:
       ]
 images:
   - "us-central1-docker.pkg.dev/crm-mvp-481223/default/crm-frontend:latest"
+substitutions:
+  _NEXT_PUBLIC_API_BASE: ""
+  _NEXT_PUBLIC_GOOGLE_CLIENT_ID: ""

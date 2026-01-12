@@ -3,4 +3,5 @@ __pycache__
 *.pyc
 *.log
 *.lock
+!uv.lock
 openai_tools.json
