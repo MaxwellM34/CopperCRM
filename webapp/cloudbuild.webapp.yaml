@@ -10,5 +10,19 @@ steps:
         "Dockerfile.webapp",
         ".",
       ]
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "crm-frontend-468831678336",
+        "--image",
+        "us-central1-docker.pkg.dev/crm-mvp-481223/default/crm-frontend:latest",
+        "--region",
+        "us-central1",
+        "--project",
+        "crm-mvp-481223",
+        "--allow-unauthenticated",
+      ]
 images:
   - "us-central1-docker.pkg.dev/crm-mvp-481223/default/crm-frontend:latest"
